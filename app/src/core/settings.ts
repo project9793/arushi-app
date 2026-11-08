@@ -14,6 +14,8 @@ export interface AppSettings {
   grokVoice: string;
   sarvamVoice: string;
   sarvamLanguage: string;
+  xaiApiKey: string;
+  sarvamApiKey: string;
   language: LanguageMode;
   replyLength: ReplyLength;
   allowDeviceActions: boolean;
@@ -26,7 +28,7 @@ export const SARVAM_VOICES = ['anushka', 'abhilash', 'manisha', 'vidya', 'arya',
 export const SARVAM_LANGUAGES = ['hi-IN', 'en-IN', 'bn-IN', 'gu-IN', 'kn-IN', 'ml-IN', 'mr-IN', 'od-IN', 'pa-IN', 'ta-IN', 'te-IN'];
 
 export const PROVIDERS: Array<{ id: ProviderId; label: string; hint: string }> = [
-  { id: 'gemini', label: 'Gemini Live', hint: 'Real-time speech to speech. Key from aistudio.google.com' },
+  { id: 'gemini', label: 'Gemini Live', hint: 'Real-time speech to speech, with device actions. Key from aistudio.google.com' },
   { id: 'grok', label: 'Grok Realtime', hint: 'Real-time speech to speech. Key from console.x.ai' },
   { id: 'sarvam', label: 'Sarvam AI', hint: 'Listen, transcribe, think, speak. Key from dashboard.sarvam.ai' },
 ];
@@ -42,6 +44,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   grokVoice: 'eve',
   sarvamVoice: 'anushka',
   sarvamLanguage: 'hi-IN',
+  xaiApiKey: '',
+  sarvamApiKey: '',
   language: 'auto',
   replyLength: 'short',
   allowDeviceActions: true,
@@ -114,7 +118,6 @@ const LENGTH_RULES: Record<ReplyLength, string> = {
   detailed: `You may give fuller answers of several sentences when the topic deserves it, but still avoid long monologues.`,
 };
 
-/** Composes the system instruction from whatever the user has configured. */
 export function buildSystemInstruction(settings: AppSettings): string {
   const persona =
     settings.preset === 'custom'

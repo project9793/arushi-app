@@ -4,13 +4,14 @@ import { createResamplerState, resampleBlockToPcm16, rmsOf } from './pcmResample
 
 const log = createLogger('microphone');
 
-export const INPUT_SAMPLE_RATE = 16000;
-const CHUNK_SAMPLES = 1600; // 100 ms
+const CHUNK_SAMPLES = 1600; // 100 ms at 16 kHz
 
 export interface AudioStreamerOptions {
   onChunk: (base64: string, samples: number) => void;
   onLevel: (rms: number) => void;
   onError: (error: unknown) => void;
+  /** Rate the provider wants. Gemini is 16 kHz, Grok realtime is 24 kHz. */
+  targetSampleRate?: number;
 }
 
 export class AudioStreamer {
@@ -26,6 +27,10 @@ export class AudioStreamer {
   private pendingSamples = 0;
 
   constructor(private readonly options: AudioStreamerOptions) {}
+
+  private get targetRate(): number {
+    return this.options.targetSampleRate ?? 16000;
+  }
 
   get isRunning(): boolean {
     return this.running;
@@ -53,11 +58,7 @@ export class AudioStreamer {
         video: false,
       });
       log.info('Microphone permission granted', {
-        tracks: stream.getAudioTracks().map((track) => ({
-          label: track.label,
-          enabled: track.enabled,
-          muted: track.muted,
-        })),
+        tracks: stream.getAudioTracks().map((track) => ({ label: track.label, enabled: track.enabled })),
       });
       this.stream = stream;
       return stream;
@@ -96,7 +97,7 @@ export class AudioStreamer {
     this.running = true;
     log.info('Microphone started', {
       inputSampleRate: this.context.sampleRate,
-      outputSampleRate: INPUT_SAMPLE_RATE,
+      outputSampleRate: this.targetRate,
       pipeline: useWorklet ? 'audioworklet' : 'scriptprocessor',
     });
   }
@@ -111,6 +112,7 @@ export class AudioStreamer {
       numberOfOutputs: 1,
       channelCount: 1,
       channelCountMode: 'explicit',
+      processorOptions: { targetSampleRate: this.targetRate },
     });
 
     node.port.onmessage = (event: MessageEvent<{ type: string; buffer?: ArrayBuffer; rms?: number }>) => {
@@ -134,7 +136,7 @@ export class AudioStreamer {
 
     node.onaudioprocess = (event: AudioProcessingEvent) => {
       const input = event.inputBuffer.getChannelData(0);
-      const pcm = resampleBlockToPcm16(input, context.sampleRate, INPUT_SAMPLE_RATE, state);
+      const pcm = resampleBlockToPcm16(input, context.sampleRate, this.targetRate, state);
       this.options.onLevel(rmsOf(input));
       if (pcm.length > 0) this.accumulate(pcm);
     };
