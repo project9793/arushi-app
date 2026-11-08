@@ -3,21 +3,34 @@ import { createLogger, describeError } from './logger';
 
 const log = createLogger('credentials');
 
+const API_ROOT = 'https://generativelanguage.googleapis.com/v1beta';
+
 export interface LiveCredentials {
   apiKey: string;
   model?: string;
   source: 'ephemeral-token' | 'env-key' | 'browser-stored';
 }
 
+interface KeyCheck {
+  liveModels: string[];
+}
+
 /**
- * Ask the Gemini REST API whether this key works before we open a websocket.
+ * Check the key against the native Gemini REST API and, at the same time, ask
+ * which models it can actually use.
  *
- * Without this, a bad key surfaces only as "WebSocket error" after the socket is
- * torn down, which tells the user nothing. A models.list call returns the real
- * reason: key not valid, API not enabled, referer blocked, quota, etc.
+ * Two reasons this exists:
+ *  1. A rejected key otherwise surfaces only as "WebSocket error", which tells
+ *     the user nothing.
+ *  2. Model names churn, and a brand new project is not granted every model.
+ *     Instead of hard-coding a guess, we ask the key what it has and use that.
+ *
+ * Note on key formats: AI Studio now issues "AQ." authentication keys; older
+ * accounts still have "AIza" traffic keys. Both work on this native endpoint,
+ * so neither is treated as wrong.
  */
-async function assertKeyWorks(apiKey: string): Promise<void> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models?pageSize=1&key=${encodeURIComponent(apiKey)}`;
+async function checkKey(apiKey: string): Promise<KeyCheck> {
+  const url = `${API_ROOT}/models?pageSize=1000&key=${encodeURIComponent(apiKey)}`;
 
   let response: Response;
   try {
@@ -27,22 +40,37 @@ async function assertKeyWorks(apiKey: string): Promise<void> {
     throw new Error(`Could not reach the Gemini API from this browser: ${describeError(error)}`);
   }
 
-  if (response.ok) {
-    log.info('API key accepted by Gemini');
-    return;
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    let reason = body.slice(0, 300);
+    try {
+      const parsed = JSON.parse(body) as { error?: { message?: string } };
+      if (parsed.error?.message) reason = parsed.error.message;
+    } catch {
+      // keep the raw body
+    }
+    log.error(`API key rejected (${response.status}): ${reason}`);
+    throw new Error(`Gemini rejected the API key (HTTP ${response.status}): ${reason}`);
   }
 
-  const body = await response.text().catch(() => '');
-  let reason = body.slice(0, 300);
-  try {
-    const parsed = JSON.parse(body) as { error?: { message?: string } };
-    if (parsed.error?.message) reason = parsed.error.message;
-  } catch {
-    // keep the raw body
-  }
+  const payload = (await response.json()) as { models?: Array<{ name?: string }> };
+  const names = (payload.models ?? [])
+    .map((model) => (model.name ?? '').replace(/^models\//, ''))
+    .filter(Boolean);
 
-  log.error(`API key rejected (${response.status}): ${reason}`);
-  throw new Error(`Gemini rejected the API key (HTTP ${response.status}): ${reason}`);
+  const liveModels = names.filter((name) => /live|native-audio/i.test(name));
+  log.info(`API key accepted. Models: ${names.length}, Live-capable: ${liveModels.join(', ') || 'none listed'}`);
+
+  return { liveModels };
+}
+
+/** Prefer the newest model the key actually offers. */
+function pickLiveModel(liveModels: string[]): string | undefined {
+  if (liveModels.length === 0) return undefined;
+  const preferred = liveModels.find((name) => name.startsWith('gemini-3.8-live'));
+  if (preferred) return preferred;
+  const anyLive = liveModels.find((name) => name.includes('live'));
+  return anyLive ?? liveModels[0];
 }
 
 export async function resolveCredentials(): Promise<LiveCredentials> {
@@ -65,21 +93,14 @@ export async function resolveCredentials(): Promise<LiveCredentials> {
 
   const envKey = import.meta.env.VITE_GEMINI_API_KEY?.trim();
   if (envKey) {
-    await assertKeyWorks(envKey);
-    return { apiKey: envKey, source: 'env-key' };
+    const check = await checkKey(envKey);
+    return { apiKey: envKey, model: pickLiveModel(check.liveModels), source: 'env-key' };
   }
 
   const stored = getStoredApiKey();
   if (stored) {
-    if (!stored.startsWith('AIza')) {
-      throw new Error(
-        'That does not look like a Gemini API key. Gemini keys start with "AIza" (this one starts with "' +
-          stored.slice(0, 4) +
-          '"). Create one at https://aistudio.google.com/apikey and paste the whole AIza... string.',
-      );
-    }
-    await assertKeyWorks(stored);
-    return { apiKey: stored, source: 'browser-stored' };
+    const check = await checkKey(stored);
+    return { apiKey: stored, model: pickLiveModel(check.liveModels), source: 'browser-stored' };
   }
 
   throw new Error(
