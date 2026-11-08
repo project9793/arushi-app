@@ -4,69 +4,68 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
   {
     name: 'openWhatsApp',
     description:
-      'Open WhatsApp on the user device. Use for any request to open WhatsApp, including "WhatsApp kholo", "WhatsApp open karo", "WhatsApp chalao", "open my WhatsApp", "WhatsApp khol do".',
+      'Open WhatsApp on the user device. Use for "WhatsApp kholo", "WhatsApp open karo", "open my WhatsApp".',
+    parametersJsonSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'sendWhatsAppMessage',
+    description:
+      'Open WhatsApp with a chat to a specific number and a message already typed in. Use for "Rahul ko WhatsApp par message bhejo ki main late hoon". The user still presses send.',
     parametersJsonSchema: {
       type: 'object',
-      properties: {},
+      properties: {
+        phoneNumber: { type: 'string', description: 'Phone number with country code if the user gave one.' },
+        message: { type: 'string', description: 'The message text to pre-fill.' },
+      },
+      required: ['phoneNumber', 'message'],
     },
   },
   {
     name: 'openApp',
     description:
-      'Open one of the allowlisted installed apps. Supported app names: WhatsApp, YouTube, Instagram, Facebook, Telegram, Gmail, Google Maps, Spotify, X (Twitter), Chrome, Phone, Camera, Settings. Use for "open YouTube", "YouTube kholo", "Instagram chala do".',
+      'Open one of the allowlisted installed apps. Supported: WhatsApp, WhatsApp Business, YouTube, Instagram, Facebook, Telegram, Snapchat, X, LinkedIn, Gmail, Google Maps, Spotify, Netflix, JioHotstar, Amazon, Flipkart, Zomato, Swiggy, Paytm, PhonePe, Google Pay, Uber, Ola, Chrome, Phone, Camera, Settings.',
     parametersJsonSchema: {
       type: 'object',
-      properties: {
-        appName: {
-          type: 'string',
-          description: 'Name of the app the user wants to open, exactly as they said it.',
-        },
-      },
+      properties: { appName: { type: 'string', description: 'Name of the app as the user said it.' } },
       required: ['appName'],
     },
   },
   {
     name: 'openUrl',
-    description:
-      'Open a website in the browser. Use when the user asks to open a site or search something on the web. Provide a full https URL when the user gave a site; if they only gave a search phrase, build a Google search URL.',
+    description: 'Open a website in the browser. Provide a full http(s) URL.',
     parametersJsonSchema: {
       type: 'object',
-      properties: {
-        url: {
-          type: 'string',
-          description: 'Absolute http(s) URL to open, for example https://youtube.com.',
-        },
-      },
+      properties: { url: { type: 'string', description: 'Absolute http(s) URL.' } },
       required: ['url'],
+    },
+  },
+  {
+    name: 'searchWeb',
+    description:
+      'Search the web in the user browser. Use when the user asks to look something up, or asks a question that needs a current answer they want to read.',
+    parametersJsonSchema: {
+      type: 'object',
+      properties: { query: { type: 'string', description: 'What to search for.' } },
+      required: ['query'],
     },
   },
   {
     name: 'makeCall',
     description:
-      'Start a phone call or open the dialer for a specific phone number. Use for "call 9876543210", "phone 9876543210", "is number pe call karo". Never guess a number.',
+      'Start a phone call or open the dialer for a specific number. Use for "call 9876543210", "is number pe call karo". Never guess a number.',
     parametersJsonSchema: {
       type: 'object',
-      properties: {
-        phoneNumber: {
-          type: 'string',
-          description: 'The phone number to call, with country code if the user gave one.',
-        },
-      },
+      properties: { phoneNumber: { type: 'string', description: 'Number to call, with country code if given.' } },
       required: ['phoneNumber'],
     },
   },
   {
     name: 'callContact',
     description:
-      'Call a person by name using the phone contacts, for example "Call Mom", "Mummy ko phone lagao", "Rahul ko call karo". The app searches contacts; if several people match it asks the user which one instead of guessing.',
+      'Call a person by name using the phone contacts, for example "Call Mom", "Mummy ko phone lagao", "Rahul ko call karo". If several contacts match, the app asks instead of guessing.',
     parametersJsonSchema: {
       type: 'object',
-      properties: {
-        contactName: {
-          type: 'string',
-          description: 'Name of the person to call, as the user said it.',
-        },
-      },
+      properties: { contactName: { type: 'string', description: 'Name of the person to call.' } },
       required: ['contactName'],
     },
   },
