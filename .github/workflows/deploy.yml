@@ -1,4 +1,4 @@
-name: Deploy site to GitHub Pages
+name: Build and publish site
 
 on:
   push:
@@ -6,26 +6,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: publish-site
   cancel-in-progress: true
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Point Pages at Actions builds
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api -X PUT "repos/${{ github.repository }}/pages" -f build_type=workflow || true
-          gh api "repos/${{ github.repository }}/pages" --jq '{build_type, status, html_url}' || true
 
       - uses: actions/setup-node@v4
         with:
@@ -47,21 +38,22 @@ jobs:
           VITE_BASE: /arushi-app/
         run: npx vite build
 
-      - name: Add .nojekyll
-        run: touch app/dist/.nojekyll
+      - name: Publish build to the branch root
+        run: |
+          rm -rf assets
+          cp -r app/dist/assets ./assets
+          cp app/dist/index.html ./index.html
+          cp app/dist/pcm-worklet.js ./pcm-worklet.js
+          touch .nojekyll
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: app/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A index.html assets pcm-worklet.js .nojekyll
+          if git diff --cached --quiet; then
+            echo "No site changes to publish"
+            exit 0
+          fi
+          git commit -m "Publish built site [skip ci]"
+          git push
