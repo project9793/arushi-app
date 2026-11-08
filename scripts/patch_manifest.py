@@ -17,12 +17,9 @@ PERMISSIONS = [
 PACKAGES = [
     'com.whatsapp',
     'com.google.android.youtube',
-    'com.instagram.android',
-    'com.facebook.katana',
     'org.telegram.messenger',
     'com.twitter.android',
     'com.linkedin.android',
-    'com.google.android.gm',
     'com.google.android.apps.maps',
     'com.spotify.music',
     'com.netflix.mediaclient',

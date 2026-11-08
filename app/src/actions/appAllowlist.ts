@@ -10,12 +10,9 @@ export interface AppTarget {
 export const APP_ALLOWLIST: AppTarget[] = [
   { id: 'whatsapp', label: 'WhatsApp', aliases: ['whatsapp', 'whats app', 'watsapp', 'wa'], webUrl: 'https://wa.me/', androidPackage: 'com.whatsapp' },
   { id: 'youtube', label: 'YouTube', aliases: ['youtube', 'you tube', 'yt'], webUrl: 'https://www.youtube.com/', androidPackage: 'com.google.android.youtube' },
-  { id: 'instagram', label: 'Instagram', aliases: ['instagram', 'insta', 'ig'], webUrl: 'https://www.instagram.com/', androidPackage: 'com.instagram.android' },
-  { id: 'facebook', label: 'Facebook', aliases: ['facebook', 'fb'], webUrl: 'https://www.facebook.com/', androidPackage: 'com.facebook.katana' },
   { id: 'telegram', label: 'Telegram', aliases: ['telegram', 'tg'], webUrl: 'https://web.telegram.org/', androidPackage: 'org.telegram.messenger' },
   { id: 'x', label: 'X', aliases: ['x', 'twitter', 'x app'], webUrl: 'https://x.com/', androidPackage: 'com.twitter.android' },
   { id: 'linkedin', label: 'LinkedIn', aliases: ['linkedin'], webUrl: 'https://www.linkedin.com/', androidPackage: 'com.linkedin.android' },
-  { id: 'gmail', label: 'Gmail', aliases: ['gmail', 'mail', 'email'], webUrl: 'https://mail.google.com/', androidPackage: 'com.google.android.gm' },
   { id: 'maps', label: 'Google Maps', aliases: ['maps', 'google maps', 'gmaps'], webUrl: 'https://maps.google.com/', androidPackage: 'com.google.android.apps.maps' },
   { id: 'spotify', label: 'Spotify', aliases: ['spotify', 'music app'], webUrl: 'https://open.spotify.com/', androidPackage: 'com.spotify.music' },
   { id: 'netflix', label: 'Netflix', aliases: ['netflix'], webUrl: 'https://www.netflix.com/', androidPackage: 'com.netflix.mediaclient' },

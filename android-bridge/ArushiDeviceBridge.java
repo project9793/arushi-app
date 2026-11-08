@@ -32,12 +32,9 @@ public class ArushiDeviceBridge {
     static {
         PACKAGES.put("whatsapp", "com.whatsapp");
         PACKAGES.put("youtube", "com.google.android.youtube");
-        PACKAGES.put("instagram", "com.instagram.android");
-        PACKAGES.put("facebook", "com.facebook.katana");
         PACKAGES.put("telegram", "org.telegram.messenger");
         PACKAGES.put("x", "com.twitter.android");
         PACKAGES.put("linkedin", "com.linkedin.android");
-        PACKAGES.put("gmail", "com.google.android.gm");
         PACKAGES.put("maps", "com.google.android.apps.maps");
         PACKAGES.put("spotify", "com.spotify.music");
         PACKAGES.put("netflix", "com.netflix.mediaclient");
