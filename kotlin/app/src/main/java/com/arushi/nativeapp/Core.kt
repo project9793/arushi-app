@@ -241,9 +241,10 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
 /**
  * Gemini Live over a raw WebSocket.
  *
- * Attempt order matters. The browser build that works in practice talks to the
- * plain v1beta endpoint with the key in the query string, so that is tried
- * first; the ephemeral-token endpoint is the second attempt.
+ * A token minted without constraints is accepted by REST and then the session is
+ * closed with code 1000 the moment setup is sent. The constrained endpoint
+ * needs the token to carry the model and the audio config, so the token is
+ * minted with liveConnectConstraints and the setup repeats the same values.
  */
 class GeminiLive(
     private val settings: AppSettings,
@@ -296,13 +297,29 @@ class GeminiLive(
         }
     }
 
+    /** Token that already carries the model and audio config. */
     private fun mintToken(): String? {
+        val constraints = JSONObject()
+        constraints.put("model", "models/" + liveModel)
+
+        val constrainedConfig = JSONObject()
+        constrainedConfig.put("responseModalities", JSONArray().put("AUDIO"))
+        val speech = JSONObject()
+        val voiceConfig = JSONObject()
+        voiceConfig.put("prebuiltVoiceConfig", JSONObject().put("voiceName", settings.voice))
+        speech.put("voiceConfig", voiceConfig)
+        constrainedConfig.put("speechConfig", speech)
+        constraints.put("config", constrainedConfig)
+
+        val body = JSONObject()
+        body.put("uses", 0)
+        body.put("liveConnectConstraints", constraints)
+
         for (path in listOf("auth_tokens", "authTokens")) {
             try {
-                val body = "{\"uses\":0}".toRequestBody("application/json".toMediaType())
                 val request = Request.Builder()
                     .url("https://generativelanguage.googleapis.com/v1alpha/" + path + "?key=" + settings.apiKey)
-                    .post(body)
+                    .post(body.toString().toRequestBody("application/json".toMediaType()))
                     .build()
 
                 client.newCall(request).execute().use { response ->
@@ -365,23 +382,24 @@ class GeminiLive(
 
             discoverModel()
 
-            var connected = openSocket(
-                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey,
-                12
-            )
-            if (!connected) problems.add("direct key endpoint silent")
+            var connected = false
+            val token = mintToken()
+            if (token != null) {
+                connected = openSocket(
+                    "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token,
+                    12
+                )
+                if (!connected) problems.add("token endpoint silent")
+            } else {
+                problems.add("no token")
+            }
 
             if (!connected) {
-                val token = mintToken()
-                if (token != null) {
-                    connected = openSocket(
-                        "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token,
-                        10
-                    )
-                    if (!connected) problems.add("token endpoint silent")
-                } else {
-                    problems.add("no token")
-                }
+                connected = openSocket(
+                    "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey,
+                    12
+                )
+                if (!connected) problems.add("direct endpoint silent")
             }
 
             if (connected) {
