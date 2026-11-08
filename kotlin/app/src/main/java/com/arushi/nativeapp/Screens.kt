@@ -47,7 +47,7 @@ val CardBorder = Color(0x33FFFFFF)
 @Composable
 fun TopBar(name: String, onProfile: () -> Unit, onExit: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -85,11 +85,11 @@ fun TopBar(name: String, onProfile: () -> Unit, onExit: () -> Unit) {
 }
 
 @Composable
-fun Mascot(modifier: Modifier = Modifier) {
+fun Mascot(size: Int = 96) {
     Box(
-        modifier = modifier.size(96.dp).clip(RoundedCornerShape(40.dp))
+        modifier = Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.42f).dp))
             .background(Brush.verticalGradient(listOf(Color.White, Color(0xFFD6E0F2), Color(0xFFA9B8D6))))
-            .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(40.dp)),
+            .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape((size * 0.42f).dp)),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -135,64 +135,108 @@ fun HomeContent(
         modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(4.dp))
+        // Hero panel: this is the space the reference fills with the portrait.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(230.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF3B1D6E), Color(0xFF1C0F33), Color(0xFF0B0618))
+                    )
+                )
+                .border(1.dp, GoldMid.copy(alpha = 0.35f), RoundedCornerShape(24.dp))
+        ) {
+            // lotus glow behind the mascot
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .size(180.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(Color(0x88F472B6), Color(0x447C3AED), Color(0x00000000)),
+                            radius = 260f
+                        )
+                    )
+            )
 
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Mascot()
-            SpeechBubble(settings.name)
+            Column(
+                modifier = Modifier.fillMaxSize().padding(14.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Smarter Today… Happier Tomorrow",
+                    color = Color(0xFFFFE9A3),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Mascot(112)
+                    SpeechBubble(settings.name)
+                }
+            }
         }
 
         Spacer(Modifier.height(14.dp))
 
-        // Five glass spheres in one row, as in the reference.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Top
         ) {
-            SphereButton("Chat Now", Color(0xFF4ADE80), Color(0xFF14532D), diameter = 60.dp, onClick = { onTab("chat") }) {
+            SphereButton("Chat Now", Color(0xFF4ADE80), Color(0xFF14532D), diameter = 62.dp, onClick = { onTab("chat") }) {
                 Text("Chat", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
-            SphereButton("Voice", Color(0xFFFB923C), Color(0xFF7C2D12), diameter = 60.dp, onClick = onTalk) {
+            SphereButton("Voice", Color(0xFFFB923C), Color(0xFF7C2D12), diameter = 62.dp, onClick = onTalk) {
                 Text("Mic", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
-            SphereButton("Ask", Color(0xFFA855F7), Color(0xFF2E1065), diameter = 60.dp, onClick = onTalk) {
+            SphereButton("Ask", Color(0xFFA855F7), Color(0xFF2E1065), diameter = 62.dp, onClick = onTalk) {
                 Text("?", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            SphereButton("Tools", Color(0xFF22D3EE), Color(0xFF155E75), diameter = 60.dp, onClick = { onTab("settings") }) {
+            SphereButton("Tools", Color(0xFF22D3EE), Color(0xFF155E75), diameter = 62.dp, onClick = { onTab("settings") }) {
                 Text("Tools", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
-            SphereButton("Apps", Color(0xFFF43F5E), Color(0xFF7F1D1D), diameter = 60.dp, onClick = { onTab("history") }) {
+            SphereButton("Apps", Color(0xFFF43F5E), Color(0xFF7F1D1D), diameter = 62.dp, onClick = { onTab("history") }) {
                 Text("Apps", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
         }
 
-        Spacer(Modifier.height(10.dp))
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(
-                        listOf(Color(0xFFFFE9A3), Color(0xFFF472B6), Color(0xFF7C3AED)),
-                        radius = 120f
-                    )
-                )
-        )
+        Spacer(Modifier.height(16.dp))
 
-        Spacer(Modifier.height(10.dp))
         Text(
             text = when (state) {
                 "listening" -> "Listening… speak now"
                 "speaking" -> settings.name + " is speaking…"
                 "connecting" -> "Connecting…"
-                "error" -> "Something went wrong"
+                "error" -> "Something went wrong — open Setting and check the key"
                 else -> "Tap Voice Assistant to start"
             },
             color = Color(0xFFCBB6FF),
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             textAlign = TextAlign.Center
         )
+
+        Spacer(Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0x22FFFFFF))
+                .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Voice · Hindi · English · Hinglish", color = Color(0xFFB8A8D9), fontSize = 10.sp)
+            Text("Gemini Live", color = GoldLight, fontSize = 10.sp)
+        }
     }
 }
 
@@ -202,7 +246,7 @@ fun TalkContent(state: String, transcript: List<Turn>, error: String?, onStop: (
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
         Box(
             modifier = Modifier.size(200.dp).clip(CircleShape).background(
                 Brush.radialGradient(
@@ -402,7 +446,7 @@ fun SettingsContent(settings: AppSettings, onSave: (AppSettings) -> Unit) {
             value = persona,
             onValueChange = { persona = it },
             label = { Text("Character") },
-            modifier = Modifier.fillMaxWidth().height(120.dp),
+            modifier = Modifier.fillMaxWidth().height(110.dp),
             textStyle = TextStyle(color = Cream, fontSize = 13.sp)
         )
 
@@ -433,8 +477,9 @@ fun BottomBar(active: String, onSelect: (String) -> Unit) {
             .clip(RoundedCornerShape(24.dp))
             .background(Brush.verticalGradient(listOf(Color(0xFA260F3C), Color(0xFA0C0618))))
             .border(1.dp, GoldMid.copy(alpha = 0.45f), RoundedCornerShape(24.dp))
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         listOf("home" to "Home", "chat" to "Chat", "history" to "History", "settings" to "Setting")
             .forEach { (id, label) ->
@@ -442,6 +487,13 @@ fun BottomBar(active: String, onSelect: (String) -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable { onSelect(id) }
                 ) {
+                    Box(
+                        Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(if (active == id) GoldMid else Color(0x33FFFFFF))
+                    )
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = label,
                         color = if (active == id) GoldMid else Color(0xFFB8A8D9),
