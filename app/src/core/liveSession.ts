@@ -39,7 +39,22 @@ export class ArushiLiveSession {
   private lastClose: { code?: number; reason?: string } | null = null;
 
   constructor(private readonly options: LiveSessionOptions) {
-    this.client = new GoogleGenAI({ apiKey: options.apiKey });
+    // The SDK routes an ephemeral token (name starts with "auth_tokens/") to
+    // BidiGenerateContentConstrained?access_token=... and that path only exists
+    // on v1alpha. Using the default v1beta there fails the handshake, which the
+    // browser reports as close code 1006 with no reason.
+    const isEphemeralToken = options.apiKey.startsWith('auth_tokens/');
+    const clientOptions: { apiKey: string; httpOptions?: { apiVersion: string } } = {
+      apiKey: options.apiKey,
+    };
+    if (isEphemeralToken) clientOptions.httpOptions = { apiVersion: 'v1alpha' };
+
+    this.client = new GoogleGenAI(clientOptions);
+    log.info(
+      isEphemeralToken
+        ? 'Live client ready: ephemeral token on v1alpha (constrained)'
+        : 'Live client ready: API key on v1beta',
+    );
   }
 
   get model(): string | null {
