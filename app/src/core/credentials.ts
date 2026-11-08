@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import { getStoredApiKey } from './apiKeyStore';
 import { createLogger, describeError } from './logger';
 
@@ -15,20 +16,6 @@ interface KeyCheck {
   liveModels: string[];
 }
 
-/**
- * Check the key against the native Gemini REST API and, at the same time, ask
- * which models it can actually use.
- *
- * Two reasons this exists:
- *  1. A rejected key otherwise surfaces only as "WebSocket error", which tells
- *     the user nothing.
- *  2. Model names churn, and a brand new project is not granted every model.
- *     Instead of hard-coding a guess, we ask the key what it has and use that.
- *
- * Note on key formats: AI Studio now issues "AQ." authentication keys; older
- * accounts still have "AIza" traffic keys. Both work on this native endpoint,
- * so neither is treated as wrong.
- */
 async function checkKey(apiKey: string): Promise<KeyCheck> {
   const url = `${API_ROOT}/models?pageSize=1000&key=${encodeURIComponent(apiKey)}`;
 
@@ -64,13 +51,33 @@ async function checkKey(apiKey: string): Promise<KeyCheck> {
   return { liveModels };
 }
 
-/** Prefer the newest model the key actually offers. */
 function pickLiveModel(liveModels: string[]): string | undefined {
   if (liveModels.length === 0) return undefined;
   const preferred = liveModels.find((name) => name.startsWith('gemini-3.8-live'));
   if (preferred) return preferred;
   const anyLive = liveModels.find((name) => name.includes('live'));
   return anyLive ?? liveModels[0];
+}
+
+/**
+ * Browsers cannot set headers on a WebSocket, so the Live socket has to carry
+ * its credential in the query string. Minting a short-lived, one-use token and
+ * putting that in the query string is the path Google documents for client-side
+ * Live connections, and it avoids whatever the raw key trips over.
+ *
+ * If minting is not permitted for this key, we simply fall back to the key.
+ */
+async function mintEphemeralToken(apiKey: string): Promise<string | null> {
+  try {
+    const client = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1alpha' } });
+    const token = await client.authTokens.create({ config: { uses: 1 } });
+    const name = token.name ?? null;
+    log.info(name ? 'Minted a one-use Live token' : 'Token minting returned no name');
+    return name;
+  } catch (error) {
+    log.warn(`Could not mint an ephemeral token, using the API key directly: ${describeError(error)}`);
+    return null;
+  }
 }
 
 export async function resolveCredentials(): Promise<LiveCredentials> {
@@ -86,24 +93,23 @@ export async function resolveCredentials(): Promise<LiveCredentials> {
     }
     const payload = (await response.json()) as { token?: string; model?: string };
     if (!payload.token) throw new Error('Token endpoint did not return a token.');
-    // Ephemeral tokens only work for Live sessions, so they cannot be checked
-    // against models.list.
     return { apiKey: payload.token, model: payload.model, source: 'ephemeral-token' };
   }
 
-  const envKey = import.meta.env.VITE_GEMINI_API_KEY?.trim();
-  if (envKey) {
-    const check = await checkKey(envKey);
-    return { apiKey: envKey, model: pickLiveModel(check.liveModels), source: 'env-key' };
+  const rawKey = import.meta.env.VITE_GEMINI_API_KEY?.trim() || getStoredApiKey();
+  if (!rawKey) {
+    throw new Error(
+      'No Gemini API key yet. Open Diagnostics -> API key, paste your key and press Save. It stays in this browser only.',
+    );
   }
 
-  const stored = getStoredApiKey();
-  if (stored) {
-    const check = await checkKey(stored);
-    return { apiKey: stored, model: pickLiveModel(check.liveModels), source: 'browser-stored' };
-  }
+  const source: LiveCredentials['source'] = import.meta.env.VITE_GEMINI_API_KEY?.trim()
+    ? 'env-key'
+    : 'browser-stored';
 
-  throw new Error(
-    'No Gemini API key yet. Open Diagnostics -> API key, paste your key and press Save. It stays in this browser only.',
-  );
+  const check = await checkKey(rawKey);
+  const model = pickLiveModel(check.liveModels);
+
+  const token = await mintEphemeralToken(rawKey);
+  return { apiKey: token ?? rawKey, model, source };
 }

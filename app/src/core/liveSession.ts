@@ -36,6 +36,7 @@ export class ArushiLiveSession {
   private reconnectAttempts = 0;
   private audioChunksIn = 0;
   private audioChunksOut = 0;
+  private lastClose: { code?: number; reason?: string } | null = null;
 
   constructor(private readonly options: LiveSessionOptions) {
     this.client = new GoogleGenAI({ apiKey: options.apiKey });
@@ -53,11 +54,17 @@ export class ArushiLiveSession {
     return this.audioChunksOut;
   }
 
+  private closeSuffix(): string {
+    if (!this.lastClose) return '';
+    return ` (close code ${this.lastClose.code ?? '?'}: ${this.lastClose.reason || 'no reason given'})`;
+  }
+
   async connect(): Promise<string> {
     const errors: string[] = [];
     log.info(`Trying models: ${this.options.models.join(', ')}`);
 
     for (const model of this.options.models) {
+      this.lastClose = null;
       try {
         log.info(`Connecting to Gemini Live: ${model}`);
         await this.openSession(model);
@@ -68,8 +75,8 @@ export class ArushiLiveSession {
         return model;
       } catch (error) {
         const detail = describeError(error);
-        errors.push(`${model}: ${detail}`);
-        log.warn(`Live connect failed for ${model}: ${detail}`);
+        errors.push(`${model}: ${detail}${this.closeSuffix()}`);
+        log.warn(`Live connect failed for ${model}: ${detail}${this.closeSuffix()}`);
         this.session = null;
       }
     }
@@ -243,6 +250,7 @@ export class ArushiLiveSession {
   private handleClose(event: CloseEvent): void {
     const reason = event?.reason || 'no reason given';
     const code = event?.code;
+    this.lastClose = { code, reason };
 
     if (this.intentionalClose) {
       log.info(`Live session closed (code ${code}, ${reason})`);
@@ -271,8 +279,8 @@ export class ArushiLiveSession {
         log.info(`Live session reconnected: ${model} (attempt ${this.reconnectAttempts})`);
       } catch (error) {
         const detail = describeError(error);
-        log.error(`Reconnect failed: ${detail}`);
-        this.options.handlers.onError(`Lost the voice session and could not reconnect: ${detail}`);
+        log.error(`Reconnect failed: ${detail}${this.closeSuffix()}`);
+        this.options.handlers.onError(`Lost the voice session and could not reconnect: ${detail}${this.closeSuffix()}`);
         this.options.handlers.onClosed({ reason, reconnecting: false });
       }
     })();
