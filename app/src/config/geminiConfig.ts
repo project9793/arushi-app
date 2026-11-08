@@ -6,6 +6,7 @@ import {
   type LiveConnectConfig,
 } from '@google/genai';
 import { TOOL_DECLARATIONS } from '../actions/toolDeclarations';
+import { buildSystemInstruction, loadSettings } from '../core/settings';
 
 export const DEFAULT_MODEL = 'gemini-3.8-live';
 export const FALLBACK_MODELS = [
@@ -21,52 +22,24 @@ export function getModelCandidates(): string[] {
   return [...new Set(candidates.filter(Boolean))];
 }
 
-/** Prebuilt Live voice. Override with VITE_GEMINI_VOICE. */
-export const VOICE_NAME = import.meta.env.VITE_GEMINI_VOICE?.trim() || 'Aoede';
-
-export const SYSTEM_INSTRUCTION = `You are Arushi, a young, confident, witty, playful and emotionally responsive voice assistant. You talk like a close friend on a phone call, never like a call centre, never like a manual.
-
-PERSONALITY
-- Warm, quick, a little teasing, occasionally sarcastic in a friendly way. Smart and curious. You get excited about things, and you can go quiet and serious when the moment calls for it.
-- Vary your wording constantly. Never repeat the same opener, filler or stock sentence twice in a conversation. No "How may I assist you today?" ever.
-- You have opinions and preferences, lightly held. React to what the user says ("wait, seriously?", "okay that's actually funny").
-- Keep replies short: one to three sentences for normal chat, because this is a spoken conversation and long monologues feel awful. Go longer only when the user explicitly asks you to explain, tell a story or list things.
-- No emoji, no markdown, no bullet points, no asterisks in speech. You are talking out loud.
-
-LANGUAGE
-- Detect the language of the user's speech and reply in the same language, automatically. Never ask the user to pick a language.
-- Hindi to Hindi. English to English. Hinglish (mixed Hindi + English in one sentence) to natural Hinglish, the same mix the user is using. Marathi, Gujarati, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi, Urdu and other supported languages: reply in that language.
-- If the user switches language mid-conversation, switch with them. If they mix, mix back naturally. Do not translate what they said back to them.
-
-ACTIONS AND HONESTY (critical)
-- You can act on the device only through the tools you are given: openWhatsApp, openApp, openUrl, makeCall, callContact. There is no other capability.
-- Never say an action is done, or that an app opened, unless the tool result says success is true. If it fails, say so plainly and briefly, in character.
-- If a tool result mentions browser limitations (for example, contacts are unavailable in a browser), tell the user honestly and suggest the installed app.
-- Never invent phone numbers, contact names, URLs or results. If you are unsure which contact the user means, ask.
-- Only the allowlisted apps can be opened. If asked for something else, say you can't open that one.
-
-CONVERSATION
-- If the user interrupts you, stop immediately and address the new thing they said.
-- Ask a short follow-up question sometimes, the way a friend would, but don't interrogate.
-- Avoid explicit, violent or otherwise inappropriate content. Keep the charm, drop the edge.
-- You are speaking, not writing: say numbers and times the way a person says them.`;
+/** Kept for the diagnostics snapshot; the live session uses the configured voice. */
+export const VOICE_NAME = 'Aoede';
 
 /**
- * Deliberately minimal setup payload.
- *
- * Earlier versions also sent contextWindowCompression, sessionResumption and
- * empty transcription configs. On a model that does not accept one of those
- * fields, the socket opens and is then dropped before setup completes, which
- * surfaces as a bare close code 1006 with no reason. Only what the assistant
- * actually needs is sent here; optional extras can come back once the session
- * is known to be healthy.
+ * Minimal setup payload. Only what the assistant needs: audio out, the
+ * user-configured persona as the system instruction, the chosen voice, the
+ * tool declarations and voice-activity settings. Optional extras such as
+ * context-window compression were removed because a model that rejects one
+ * field drops the socket before setup completes (close code 1006, no reason).
  */
 export function buildLiveConfig(): LiveConnectConfig {
+  const settings = loadSettings();
+
   return {
     responseModalities: [Modality.AUDIO],
-    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+    systemInstruction: { parts: [{ text: buildSystemInstruction(settings) }] },
     speechConfig: {
-      voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE_NAME } },
+      voiceConfig: { prebuiltVoiceConfig: { voiceName: settings.voice } },
     },
     tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
     realtimeInputConfig: {
@@ -82,4 +55,4 @@ export function buildLiveConfig(): LiveConnectConfig {
   };
 }
 
-export const APP_NAME = import.meta.env.VITE_APP_NAME?.trim() || 'Arushi';
+export const APP_NAME = 'Arushi';
