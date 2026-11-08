@@ -33,11 +33,32 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
           "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" > /dev/null 2>&1 || true
 
-      # The action handles retries and integrity checks; a raw curl to the CDN
-      # occasionally returns a truncated zip and fails the whole build.
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.11.1
+      # The Gradle CDN throws occasional 504s and truncated zips, so try three
+      # mirrors with retries and only accept a file that unzip can verify.
+      - name: Install Gradle
+        run: |
+          set -u
+          URLS=(
+            "https://services.gradle.org/distributions/gradle-8.11.1-bin.zip"
+            "https://downloads.gradle.org/distributions/gradle-8.11.1-bin.zip"
+            "https://downloads.gradle-dn.com/distributions/gradle-8.11.1-bin.zip"
+          )
+          ok=0
+          for url in "${URLS[@]}"; do
+            for attempt in 1 2 3; do
+              echo "Downloading $url (attempt $attempt)"
+              if curl -fsSL --retry 3 --retry-all-errors --retry-delay 4 --max-time 180 \
+                   -o /tmp/gradle.zip "$url" && unzip -tq /tmp/gradle.zip > /dev/null 2>&1; then
+                unzip -q /tmp/gradle.zip -d /opt
+                echo "/opt/gradle-8.11.1/bin" >> "$GITHUB_PATH"
+                ok=1
+                break 2
+              fi
+              sleep 6
+            done
+          done
+          if [ "$ok" != "1" ]; then echo "could not download Gradle"; exit 1; fi
+          /opt/gradle-8.11.1/bin/gradle --version
 
       - name: Build debug APK
         working-directory: kotlin
