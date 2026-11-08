@@ -9,17 +9,30 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 
 /** Owns the live session so the UI stays declarative. */
@@ -154,7 +167,32 @@ fun AppRoot(prefs: Prefs, history: HistoryStore) {
     FantasyBackground {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             if (inTalk) {
-                TalkContent(state = state, transcript = transcript, error = error, onStop = { stopTalking() })
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Back button, top left, always available on the talk screen.
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "‹  Back",
+                            color = GoldLight,
+                            fontSize = 13.sp,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(Color(0x33FFFFFF))
+                                .border(1.dp, GoldMid.copy(alpha = 0.45f), RoundedCornerShape(50))
+                                .clickable { stopTalking() }
+                                .padding(horizontal = 14.dp, vertical = 7.dp)
+                        )
+                    }
+
+                    TalkContent(
+                        state = state,
+                        transcript = transcript,
+                        error = error,
+                        onStop = { stopTalking() }
+                    )
+                }
             } else {
                 TopBar(
                     name = settings.name,
