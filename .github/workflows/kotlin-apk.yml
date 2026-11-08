@@ -33,11 +33,11 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
           "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" > /dev/null 2>&1 || true
 
-      - name: Gradle
-        run: |
-          curl -sSLo /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
-          unzip -q /tmp/gradle.zip -d /opt
-          echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
+      # The action handles retries and integrity checks; a raw curl to the CDN
+      # occasionally returns a truncated zip and fails the whole build.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
 
       - name: Build debug APK
         working-directory: kotlin
@@ -57,5 +57,5 @@ jobs:
         run: |
           gh release delete kotlin-latest --yes --cleanup-tag || true
           gh release create kotlin-latest arushi-kotlin-debug.apk \
-            --title "Arushi (Kotlin, native) — latest debug build" \
+            --title "Arushi (Kotlin, native) - latest debug build" \
             --notes "Native Kotlin build. Debug-signed, sideload only. Commit ${{ github.sha }}"
