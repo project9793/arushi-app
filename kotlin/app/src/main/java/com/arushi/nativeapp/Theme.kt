@@ -2,6 +2,7 @@ package com.arushi.nativeapp
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -75,34 +77,33 @@ fun SphereButton(
     top: Color,
     bottom: Color,
     modifier: Modifier = Modifier,
+    diameter: Dp = 76.dp,
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         Box(
             modifier = Modifier
-                .size(84.dp)
+                .size(diameter)
                 .clip(CircleShape)
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.85f), top, bottom),
-                        radius = 190f
+                        colors = listOf(Color.White.copy(alpha = 0.88f), top, bottom),
+                        radius = 170f
                     )
                 )
                 .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
-                .clickableSphere(onClick),
+                .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) { content() }
         Text(
             text = label,
             color = Cream,
-            fontSize = 11.sp,
+            fontSize = 9.sp,
+            lineHeight = 10.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.size(width = 92.dp, height = 30.dp)
+            modifier = Modifier.size(width = diameter + 10.dp, height = 24.dp)
         )
     }
 }
-
-private fun Modifier.clickableSphere(onClick: () -> Unit): Modifier =
-    this.then(androidx.compose.foundation.clickable(onClick = onClick))

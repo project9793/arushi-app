@@ -47,7 +47,7 @@ val CardBorder = Color(0x33FFFFFF)
 @Composable
 fun TopBar(name: String, onProfile: () -> Unit, onExit: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -57,26 +57,29 @@ fun TopBar(name: String, onProfile: () -> Unit, onExit: () -> Unit) {
                 .background(Brush.verticalGradient(listOf(Color(0xFF3C240C), Color(0xFF180E06))))
                 .border(1.dp, GoldMid.copy(alpha = 0.6f), RoundedCornerShape(50))
                 .clickable(onClick = onProfile)
-                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .padding(horizontal = 9.dp, vertical = 5.dp)
         ) {
-            Text("My Profile ›", color = GoldLight, fontSize = 11.sp)
+            Text("My Profile ›", color = GoldLight, fontSize = 10.sp)
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            GoldText(text = name, size = 24)
-            Text("AI Assistant", color = Color(0xFFF0ABFC), fontSize = 11.sp)
+            GoldText(text = name, size = 22)
+            Text("AI Assistant", color = Color(0xFFF0ABFC), fontSize = 10.sp)
         }
 
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF1B0F2E))
-                .border(1.dp, GoldMid.copy(alpha = 0.6f), CircleShape)
-                .clickable(onClick = onExit),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("⏻", color = GoldLight, fontSize = 16.sp)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF2A0B12))
+                    .border(1.dp, Color(0xFFEF4444), CircleShape)
+                    .clickable(onClick = onExit),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(Modifier.size(10.dp).clip(CircleShape).border(2.dp, Color(0xFFFCA5A5), CircleShape))
+            }
+            Text("Exit", color = Color(0xFFFCA5A5), fontSize = 9.sp)
         }
     }
 }
@@ -84,19 +87,20 @@ fun TopBar(name: String, onProfile: () -> Unit, onExit: () -> Unit) {
 @Composable
 fun Mascot(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.size(112.dp).clip(RoundedCornerShape(46.dp))
+        modifier = modifier.size(96.dp).clip(RoundedCornerShape(40.dp))
             .background(Brush.verticalGradient(listOf(Color.White, Color(0xFFD6E0F2), Color(0xFFA9B8D6))))
-            .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(46.dp)),
+            .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(40.dp)),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Box(Modifier.size(11.dp).clip(CircleShape).background(Color(0xFFC4B5FD)))
-                Box(Modifier.size(11.dp).clip(CircleShape).background(Color(0xFFC4B5FD)))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.size(10.dp).clip(CircleShape).background(Color(0xFFC4B5FD)))
+                Box(Modifier.size(10.dp).clip(CircleShape).background(Color(0xFFC4B5FD)))
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(7.dp))
             Box(
-                Modifier.width(26.dp).height(10.dp).clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
+                Modifier.width(24.dp).height(9.dp)
+                    .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
                     .background(Color(0xFFC4B5FD))
             )
         }
@@ -107,15 +111,15 @@ fun Mascot(modifier: Modifier = Modifier) {
 fun SpeechBubble(name: String) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(Brush.verticalGradient(listOf(Color(0xEB3C1450), Color(0xF2180828))))
-            .border(1.dp, Color(0xFFD8B4FE).copy(alpha = 0.6f), RoundedCornerShape(20.dp))
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .border(1.dp, Color(0xFFD8B4FE).copy(alpha = 0.6f), RoundedCornerShape(18.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column {
-            Text("Hello!", color = Cream, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            Text("I am $name", color = Color(0xFFF0ABFC), fontSize = 13.sp)
-            Text("How can I help you?", color = Cream, fontSize = 12.sp)
+            Text("Hello!", color = Cream, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("I am $name", color = Color(0xFFF0ABFC), fontSize = 12.sp)
+            Text("How can I help you?", color = Cream, fontSize = 11.sp)
         }
     }
 }
@@ -128,56 +132,69 @@ fun HomeContent(
     onTab: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(6.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Spacer(Modifier.height(4.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Mascot()
             SpeechBubble(settings.name)
         }
 
-        Spacer(Modifier.height(18.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-            SphereButton("Chat Now", Color(0xFF4ADE80), Color(0xFF14532D), onClick = { onTab("chat") }) {
-                Text("Chat", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-            SphereButton("Smart Tools", Color(0xFFF472B6), Color(0xFF831843), onClick = { onTab("settings") }) {
-                Text("Tools", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-
         Spacer(Modifier.height(14.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            SphereButton("Voice Assistant", Color(0xFFFB923C), Color(0xFF7C2D12), onClick = onTalk) {
-                Text("Voice", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        // Five glass spheres in one row, as in the reference.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Top
+        ) {
+            SphereButton("Chat Now", Color(0xFF4ADE80), Color(0xFF14532D), diameter = 60.dp, onClick = { onTab("chat") }) {
+                Text("Chat", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
-            SphereButton("Ask Anything", Color(0xFFF472B6), Color(0xFF4A0D29), onClick = onTalk) {
-                Text("?", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            SphereButton("Voice", Color(0xFFFB923C), Color(0xFF7C2D12), diameter = 60.dp, onClick = onTalk) {
+                Text("Mic", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
-            SphereButton("More Apps", Color(0xFFA3E635), Color(0xFF3F6212), onClick = { onTab("history") }) {
-                Text("Apps", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            SphereButton("Ask", Color(0xFFA855F7), Color(0xFF2E1065), diameter = 60.dp, onClick = onTalk) {
+                Text("?", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            SphereButton("Tools", Color(0xFF22D3EE), Color(0xFF155E75), diameter = 60.dp, onClick = { onTab("settings") }) {
+                Text("Tools", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            }
+            SphereButton("Apps", Color(0xFFF43F5E), Color(0xFF7F1D1D), diameter = 60.dp, onClick = { onTab("history") }) {
+                Text("Apps", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        listOf(Color(0xFFFFE9A3), Color(0xFFF472B6), Color(0xFF7C3AED)),
+                        radius = 120f
+                    )
+                )
+        )
+
+        Spacer(Modifier.height(10.dp))
         Text(
             text = when (state) {
                 "listening" -> "Listening… speak now"
-                "speaking" -> "$nameOf is speaking…"
+                "speaking" -> settings.name + " is speaking…"
                 "connecting" -> "Connecting…"
+                "error" -> "Something went wrong"
                 else -> "Tap Voice Assistant to start"
-            }.replace("$nameOf", settings.name),
+            },
             color = Color(0xFFCBB6FF),
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             textAlign = TextAlign.Center
         )
     }
 }
-
-private const val nameOf = "__name__"
 
 @Composable
 fun TalkContent(state: String, transcript: List<Turn>, error: String?, onStop: () -> Unit) {
@@ -185,20 +202,22 @@ fun TalkContent(state: String, transcript: List<Turn>, error: String?, onStop: (
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(16.dp))
         Box(
-            modifier = Modifier.size(220.dp).clip(CircleShape).background(
+            modifier = Modifier.size(200.dp).clip(CircleShape).background(
                 Brush.radialGradient(
                     listOf(Color(0xFFFFFFFF), Color(0xFFF472B6), Color(0xFF7C3AED)),
-                    radius = 320f
+                    radius = 300f
                 )
             ),
             contentAlignment = Alignment.Center
         ) {
-            Text(if (state == "speaking") "Speaking" else "", color = Color(0xFF1B0F2E), fontSize = 13.sp)
+            if (state == "speaking") {
+                Text("Speaking", color = Color(0xFF1B0F2E), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
         Text(
             text = when (state) {
                 "listening" -> "Listening"
@@ -207,29 +226,27 @@ fun TalkContent(state: String, transcript: List<Turn>, error: String?, onStop: (
                 "error" -> "Something went wrong"
                 else -> "Tap to Talk"
             },
-            color = Cream, fontSize = 22.sp, fontWeight = FontWeight.SemiBold
+            color = Cream, fontSize = 20.sp, fontWeight = FontWeight.SemiBold
         )
 
         if (error != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
             Text(error, color = Color(0xFFFFC2C2), fontSize = 11.sp, textAlign = TextAlign.Center)
         }
 
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(14.dp))
         Box(
-            modifier = Modifier.size(76.dp).clip(CircleShape)
+            modifier = Modifier.size(68.dp).clip(CircleShape)
                 .background(Brush.verticalGradient(listOf(Color(0xFFF43F5E), Color(0xFFD946EF))))
                 .clickable(onClick = onStop),
             contentAlignment = Alignment.Center
         ) {
-            Box(Modifier.size(20.dp).clip(RoundedCornerShape(5.dp)).background(Color.White))
+            Box(Modifier.size(18.dp).clip(RoundedCornerShape(5.dp)).background(Color.White))
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(16.dp))
         LazyColumn(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            items(transcript.takeLast(12)) { turn ->
-                TurnBubble(turn)
-            }
+            items(transcript.takeLast(12)) { turn -> TurnBubble(turn) }
         }
     }
 }
@@ -251,10 +268,7 @@ fun TurnBubble(turn: Turn) {
 }
 
 @Composable
-fun ChatContent(
-    transcript: List<Turn>,
-    onSend: (String) -> Unit
-) {
+fun ChatContent(transcript: List<Turn>, onSend: (String) -> Unit) {
     var draft by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -335,10 +349,7 @@ fun HistoryContent(sessions: List<Session>, onClear: () -> Unit) {
 }
 
 @Composable
-fun SettingsContent(
-    settings: AppSettings,
-    onSave: (AppSettings) -> Unit
-) {
+fun SettingsContent(settings: AppSettings, onSave: (AppSettings) -> Unit) {
     var name by remember { mutableStateOf(settings.name) }
     var userName by remember { mutableStateOf(settings.userName) }
     var apiKey by remember { mutableStateOf(settings.apiKey) }
@@ -381,7 +392,7 @@ fun SettingsContent(
         OutlinedTextField(
             value = voice,
             onValueChange = { voice = it },
-            label = { Text("Voice (Aoede, Kore, Puck…) ") },
+            label = { Text("Voice") },
             modifier = Modifier.fillMaxWidth(),
             textStyle = TextStyle(color = Cream, fontSize = 13.sp)
         )
@@ -418,7 +429,7 @@ fun BottomBar(active: String, onSelect: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 10.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Brush.verticalGradient(listOf(Color(0xFA260F3C), Color(0xFA0C0618))))
             .border(1.dp, GoldMid.copy(alpha = 0.45f), RoundedCornerShape(24.dp))
