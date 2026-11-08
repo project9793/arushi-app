@@ -28,11 +28,21 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - uses: android-actions/setup-android@v3
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # The ubuntu-latest image already ships an Android SDK. The setup-android
+      # action tries to accept licences interactively and fails on a prompt, so
+      # we just accept them ourselves and make sure the platform is present.
+      - name: Android SDK licences and packages
+        run: |
+          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER=$(command -v sdkmanager); fi
+          echo "using $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0" > /dev/null 2>&1 || true
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platforms" || true
 
       - name: Prepare Android project
         run: bash scripts/prepare-android.sh
@@ -56,4 +66,4 @@ jobs:
           gh release delete apk-latest --yes --cleanup-tag || true
           gh release create apk-latest arushi-debug.apk \
             --title "Arushi APK (latest debug build)" \
-            --notes "Signed with the debug keystore: sideload only, not for Play Store. Built from commit ${{ github.sha }}."
+            --notes "Debug-signed, sideload only. Built from commit ${{ github.sha }}."
