@@ -60,19 +60,20 @@ function pickLiveModel(liveModels: string[]): string | undefined {
 }
 
 /**
- * Browsers cannot set headers on a WebSocket, so the Live socket has to carry
- * its credential in the query string. Minting a short-lived, one-use token and
- * putting that in the query string is the path Google documents for client-side
- * Live connections, and it avoids whatever the raw key trips over.
+ * Browsers cannot set headers on a WebSocket, so the Live socket carries its
+ * credential in the query string. Minting a short-lived token for that is the
+ * path Google documents for client-side Live connections.
  *
- * If minting is not permitted for this key, we simply fall back to the key.
+ * `uses: 0` means no use limit, which matters here: the app tries several
+ * models in order, and a one-use token would be spent by the first attempt.
+ * If minting is not permitted for this key, we fall back to the key itself.
  */
 async function mintEphemeralToken(apiKey: string): Promise<string | null> {
   try {
     const client = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1alpha' } });
-    const token = await client.authTokens.create({ config: { uses: 1 } });
+    const token = await client.authTokens.create({ config: { uses: 0 } });
     const name = token.name ?? null;
-    log.info(name ? 'Minted a one-use Live token' : 'Token minting returned no name');
+    log.info(name ? 'Minted a Live token (no use limit)' : 'Token minting returned no name');
     return name;
   } catch (error) {
     log.warn(`Could not mint an ephemeral token, using the API key directly: ${describeError(error)}`);
