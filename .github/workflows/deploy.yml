@@ -19,27 +19,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Point Pages at Actions builds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/pages" -f build_type=workflow || true
+          gh api "repos/${{ github.repository }}/pages" --jq '{build_type, status, html_url}' || true
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - name: Install
         working-directory: app
         run: npm install --no-audit --no-fund --legacy-peer-deps
+
       - name: Typecheck and unit tests
         working-directory: app
         run: |
           npx tsc -b --pretty false
           npx vitest run --pool=threads --maxWorkers=1 --passWithNoTests
+
       - name: Build
         working-directory: app
         env:
           VITE_BASE: /arushi-app/
         run: npx vite build
+
       - name: Add .nojekyll
         run: touch app/dist/.nojekyll
+
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist
