@@ -16,6 +16,7 @@ import {
   type ProviderId,
   type ReplyLength,
 } from '../core/settings';
+import { getStoredApiKey, maskApiKey, setStoredApiKey } from '../core/apiKeyStore';
 
 const FIELD =
   'w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-violet-50 placeholder:text-violet-200/25 focus:border-violet-400/60 focus:outline-none';
@@ -24,15 +25,20 @@ const LABEL = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text
 /**
  * Everything the user can change: provider and its key, who the assistant is,
  * how it behaves, what it sounds like and what language it speaks.
+ *
+ * All three provider keys are entered here. The Gemini key is stored through
+ * apiKeyStore so it is the same value the connection code reads.
  */
 export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) => void }) {
   const [draft, setDraft] = useState<AppSettings>(() => loadSettings());
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [geminiKey, setGeminiKey] = useState<string>(() => getStoredApiKey() ?? '');
 
   const patch = (changes: Partial<AppSettings>) => setDraft((current) => ({ ...current, ...changes }));
 
   const save = () => {
     saveSettings(draft);
+    if (draft.provider === 'gemini') setStoredApiKey(geminiKey);
     setSavedAt(Date.now());
     onSaved?.(draft);
   };
@@ -73,6 +79,25 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
         </select>
         <p className="mt-1 text-[11px] leading-relaxed text-violet-200/40">{providerHint}</p>
       </div>
+
+      {draft.provider === 'gemini' ? (
+        <div className="mt-3">
+          <label className={LABEL} htmlFor="gemini-key">
+            Gemini API key
+          </label>
+          <input
+            id="gemini-key"
+            type="password"
+            className={FIELD}
+            value={geminiKey}
+            placeholder="AIza… or AQ.…"
+            onChange={(event) => setGeminiKey(event.target.value)}
+          />
+          <p className="mt-1 text-[11px] text-violet-200/40">
+            {geminiKey ? `currently saved: ${maskApiKey(geminiKey)}` : 'no key saved yet'}
+          </p>
+        </div>
+      ) : null}
 
       {draft.provider === 'grok' ? (
         <div className="mt-3">
@@ -312,7 +337,7 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
       </div>
 
       <p className="mt-3 text-[11px] leading-relaxed text-violet-200/40">
-        Keys and settings are saved in this browser only. Settings apply the next time you tap the mic.
+        Keys and settings are saved on this device only. Settings apply the next time you tap the mic.
       </p>
     </div>
   );
