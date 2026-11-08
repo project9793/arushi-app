@@ -1,0 +1,61 @@
+name: Build Kotlin APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'kotlin/**'
+      - '.github/workflows/kotlin-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kotlin-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK licences
+        run: |
+          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER=$(command -v sdkmanager); fi
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" > /dev/null 2>&1 || true
+
+      - name: Gradle
+        run: |
+          curl -sSLo /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+          unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
+
+      - name: Build debug APK
+        working-directory: kotlin
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Collect APK
+        run: cp kotlin/app/build/outputs/apk/debug/app-debug.apk arushi-kotlin-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arushi-kotlin-apk
+          path: arushi-kotlin-debug.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete kotlin-latest --yes --cleanup-tag || true
+          gh release create kotlin-latest arushi-kotlin-debug.apk \
+            --title "Arushi (Kotlin, native) — latest debug build" \
+            --notes "Native Kotlin build. Debug-signed, sideload only. Commit ${{ github.sha }}"
