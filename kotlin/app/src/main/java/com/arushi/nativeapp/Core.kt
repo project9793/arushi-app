@@ -239,10 +239,10 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
 /**
  * Gemini Live over a raw WebSocket.
  *
- * The API key itself cannot be used on the websocket any more, so we mint a
+ * The websocket cannot take the API key directly any more, so we mint a
  * short-lived ephemeral token over REST and connect to the constrained v1alpha
- * endpoint with ?access_token=. If minting fails we fall back to the plain key
- * on v1beta so the user still sees a real error instead of silence.
+ * endpoint with ?access_token=. The REST collection is `auth_tokens` (snake
+ * case); `authTokens` returns 404.
  */
 class GeminiLive(
     private val settings: AppSettings,
@@ -260,25 +260,29 @@ class GeminiLive(
     private var socket: WebSocket? = null
 
     private fun mintToken(): String? {
-        return try {
-            val body = "{\"uses\":0}".toRequestBody("application/json".toMediaType())
-            val request = Request.Builder()
-                .url("https://generativelanguage.googleapis.com/v1alpha/authTokens?key=" + settings.apiKey)
-                .post(body)
-                .build()
+        val paths = listOf("auth_tokens", "authTokens")
+        for (path in paths) {
+            try {
+                val body = "{\"uses\":0}".toRequestBody("application/json".toMediaType())
+                val request = Request.Builder()
+                    .url("https://generativelanguage.googleapis.com/v1alpha/" + path + "?key=" + settings.apiKey)
+                    .post(body)
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                val text = response.body?.string().orEmpty()
-                if (!response.isSuccessful) {
-                    onError("Token request failed (HTTP " + response.code + "): " + text.take(160))
-                    return null
+                client.newCall(request).execute().use { response ->
+                    val text = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) {
+                        onError("Token request failed (HTTP " + response.code + "): " + text.take(140))
+                        return@use
+                    }
+                    val name = JSONObject(text).optString("name")
+                    if (name.isNotBlank()) return name
                 }
-                JSONObject(text).optString("name").ifBlank { null }
+            } catch (error: Exception) {
+                onError("Token request failed: " + (error.message ?: ""))
             }
-        } catch (error: Exception) {
-            onError("Token request failed: " + (error.message ?: ""))
-            null
         }
+        return null
     }
 
     fun connect() {
