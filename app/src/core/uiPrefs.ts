@@ -1,6 +1,6 @@
 /**
  * Small UI preferences that are not part of the assistant configuration:
- * the hero avatar image and the last open tab.
+ * the hero avatar image, the last open tab and the saved conversations.
  */
 
 const AVATAR_KEY = 'arushi.avatarUrl';
@@ -43,15 +43,21 @@ export function setLastTab(tab: TabId): void {
   }
 }
 
+export interface HistoryLine {
+  role: 'user' | 'arushi';
+  text: string;
+}
+
 export interface HistoryEntry {
   id: string;
   at: number;
   provider: string;
   preview: string;
   turns: number;
+  lines: HistoryLine[];
 }
 
-const HISTORY_KEY = 'arushi.history.v1';
+const HISTORY_KEY = 'arushi.history.v2';
 const MAX_HISTORY = 40;
 
 export function loadHistory(): HistoryEntry[] {
