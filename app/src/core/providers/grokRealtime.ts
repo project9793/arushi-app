@@ -136,9 +136,7 @@ export class GrokRealtimeProvider implements VoiceProvider {
     switch (type) {
       case 'response.output_audio.delta': {
         const delta = payload.delta;
-        if (typeof delta === 'string' && delta) {
-          events.onAudio(decodePcm16(delta), SAMPLE_RATE);
-        }
+        if (typeof delta === 'string' && delta) events.onAudio(decodePcm16(delta), SAMPLE_RATE);
         break;
       }
 
@@ -185,6 +183,18 @@ export class GrokRealtimeProvider implements VoiceProvider {
   sendAudio(base64Pcm: string): void {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
     this.socket.send(JSON.stringify({ type: 'input_audio_buffer.append', audio: base64Pcm }));
+  }
+
+  /** Typed message: add it to the conversation, then ask for a response. */
+  sendText(text: string): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+    this.socket.send(
+      JSON.stringify({
+        type: 'conversation.item.create',
+        item: { type: 'message', role: 'user', content: [{ type: 'input_text', text }] },
+      }),
+    );
+    this.socket.send(JSON.stringify({ type: 'response.create' }));
   }
 
   handleLevel(): void {

@@ -23,6 +23,8 @@ export interface VoiceProvider {
   readonly inputSampleRate: number;
   connect(): Promise<string>;
   sendAudio(base64Pcm: string): void;
+  /** Optional: send a typed message instead of speech. */
+  sendText?: (text: string) => void;
   /** Microphone level, used by the turn-based provider for end-of-speech. */
   handleLevel(rms: number): void;
   close(): void;

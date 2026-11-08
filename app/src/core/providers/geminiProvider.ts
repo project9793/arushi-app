@@ -1,5 +1,4 @@
 import type { FunctionCall, FunctionResponse } from '@google/genai';
-import { buildSystemInstruction, loadSettings } from '../settings';
 import { resolveCredentials } from '../credentials';
 import { ArushiLiveSession } from '../liveSession';
 import { getModelCandidates } from '../../config/geminiConfig';
@@ -8,10 +7,7 @@ import type { VoiceProvider, VoiceProviderEvents } from './types';
 
 const log = createLogger('gemini-provider');
 
-/**
- * Adapts the Gemini Live session to the VoiceProvider interface, so the
- * controller treats every backend the same way.
- */
+/** Adapts the Gemini Live session to the VoiceProvider interface. */
 export class GeminiLiveProvider implements VoiceProvider {
   readonly name = 'gemini';
   readonly inputSampleRate = 16000;
@@ -30,7 +26,6 @@ export class GeminiLiveProvider implements VoiceProvider {
   }
 
   async connect(): Promise<string> {
-    const settings = loadSettings();
     const credentials = await resolveCredentials();
     log.info(`Credentials resolved (${credentials.source})`);
 
@@ -51,16 +46,16 @@ export class GeminiLiveProvider implements VoiceProvider {
       },
     });
 
-    // The system instruction is built here so a persona change applies without
-    // touching the shared config module.
-    void buildSystemInstruction(settings);
-
     this.session = session;
     return session.connect();
   }
 
   sendAudio(base64Pcm: string): void {
     this.session?.sendAudio(base64Pcm);
+  }
+
+  sendText(text: string): void {
+    this.session?.sendTextTurn(text);
   }
 
   handleLevel(): void {

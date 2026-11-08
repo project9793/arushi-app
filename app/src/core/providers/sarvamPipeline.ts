@@ -24,9 +24,6 @@ export interface SarvamOptions {
  * Sarvam AI has no single speech-to-speech socket, so this provider runs the
  * classic pipeline: buffer the microphone until the user stops talking, then
  * Saaras (speech to text) -> Sarvam chat -> Bulbul (text to speech) -> speaker.
- *
- * Every step is a plain REST call, which is why this works in a browser with no
- * server of our own.
  */
 export class SarvamPipelineProvider implements VoiceProvider {
   readonly name = 'sarvam';
@@ -43,8 +40,6 @@ export class SarvamPipelineProvider implements VoiceProvider {
   constructor(private readonly options: SarvamOptions) {}
 
   async connect(): Promise<string> {
-    // Nothing to open: the pipeline is request/response. Prove the key works
-    // with a cheap chat call so a bad key fails here, not mid-conversation.
     const response = await fetch(CHAT_URL, {
       method: 'POST',
       headers: {
@@ -72,6 +67,28 @@ export class SarvamPipelineProvider implements VoiceProvider {
     if (this.closed || this.busy) return;
     this.chunks.push(base64Pcm);
     if (this.chunks.length > 400) this.chunks.shift();
+  }
+
+  /** Typed message: skip speech-to-text and answer it directly. */
+  sendText(text: string): void {
+    if (this.closed || this.busy) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    this.busy = true;
+    void (async () => {
+      try {
+        const reply = await this.reply(trimmed);
+        if (!reply) return;
+        this.options.events.onAssistantTranscript(reply, true);
+        await this.speak(reply);
+        this.options.events.onTurnComplete();
+      } catch (error) {
+        log.error(`Typed turn failed: ${describeError(error)}`);
+        this.options.events.onError(`Sarvam turn failed: ${describeError(error)}`);
+      } finally {
+        this.busy = false;
+      }
+    })();
   }
 
   handleLevel(rms: number): void {
