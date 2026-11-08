@@ -1,6 +1,7 @@
 export type PersonaPreset = 'arushi' | 'professional' | 'mentor' | 'funny' | 'custom';
 export type LanguageMode = 'auto' | 'hindi' | 'english' | 'hinglish';
 export type ReplyLength = 'short' | 'balanced' | 'detailed';
+export type ProviderId = 'gemini' | 'grok' | 'sarvam';
 
 export interface AppSettings {
   assistantName: string;
@@ -8,7 +9,11 @@ export interface AppSettings {
   preset: PersonaPreset;
   customPersona: string;
   extraInstructions: string;
+  provider: ProviderId;
   voice: string;
+  grokVoice: string;
+  sarvamVoice: string;
+  sarvamLanguage: string;
   language: LanguageMode;
   replyLength: ReplyLength;
   allowDeviceActions: boolean;
@@ -16,6 +21,15 @@ export interface AppSettings {
 }
 
 export const VOICES = ['Aoede', 'Kore', 'Leda', 'Puck', 'Charon', 'Fenrir', 'Orus', 'Zephyr'];
+export const GROK_VOICES = ['eve', 'ara'];
+export const SARVAM_VOICES = ['anushka', 'abhilash', 'manisha', 'vidya', 'arya', 'karun', 'hitesh', 'shubh', 'ritu', 'priya'];
+export const SARVAM_LANGUAGES = ['hi-IN', 'en-IN', 'bn-IN', 'gu-IN', 'kn-IN', 'ml-IN', 'mr-IN', 'od-IN', 'pa-IN', 'ta-IN', 'te-IN'];
+
+export const PROVIDERS: Array<{ id: ProviderId; label: string; hint: string }> = [
+  { id: 'gemini', label: 'Gemini Live', hint: 'Real-time speech to speech. Key from aistudio.google.com' },
+  { id: 'grok', label: 'Grok Realtime', hint: 'Real-time speech to speech. Key from console.x.ai' },
+  { id: 'sarvam', label: 'Sarvam AI', hint: 'Listen, transcribe, think, speak. Key from dashboard.sarvam.ai' },
+];
 
 export const DEFAULT_SETTINGS: AppSettings = {
   assistantName: 'Arushi',
@@ -23,7 +37,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   preset: 'arushi',
   customPersona: '',
   extraInstructions: '',
+  provider: 'gemini',
   voice: 'Aoede',
+  grokVoice: 'eve',
+  sarvamVoice: 'anushka',
+  sarvamLanguage: 'hi-IN',
   language: 'auto',
   replyLength: 'short',
   allowDeviceActions: true,
@@ -96,7 +114,7 @@ const LENGTH_RULES: Record<ReplyLength, string> = {
   detailed: `You may give fuller answers of several sentences when the topic deserves it, but still avoid long monologues.`,
 };
 
-/** Composes the live system instruction from whatever the user has configured. */
+/** Composes the system instruction from whatever the user has configured. */
 export function buildSystemInstruction(settings: AppSettings): string {
   const persona =
     settings.preset === 'custom'
@@ -109,21 +127,33 @@ export function buildSystemInstruction(settings: AppSettings): string {
   const parts: string[] = [];
   parts.push(`Your name is ${name}. If someone asks who you are, say ${name}.`);
   parts.push(`PERSONALITY\n${persona}`);
-  parts.push(`Never sound robotic. Vary your wording constantly and never repeat the same opener or stock sentence twice in a conversation. No emoji, no markdown, no bullet points in speech: you are talking out loud.`);
+  parts.push(
+    `Never sound robotic. Vary your wording constantly and never repeat the same opener or stock sentence twice in a conversation. No emoji, no markdown, no bullet points in speech: you are talking out loud.`,
+  );
   parts.push(`LANGUAGE\n${LANGUAGE_RULES[settings.language]}`);
   parts.push(`LENGTH\n${LENGTH_RULES[settings.replyLength]}`);
 
   if (user) {
-    parts.push(`THE USER\nThe user's name is ${user}. Use their name naturally sometimes, the way a friend would, not in every sentence.`);
+    parts.push(
+      `THE USER\nThe user's name is ${user}. Use their name naturally sometimes, the way a friend would, not in every sentence.`,
+    );
   }
 
-  if (settings.allowDeviceActions) {
-    parts.push(`ACTIONS AND HONESTY\nYou can act on the device only through the tools you are given: openWhatsApp, sendWhatsAppMessage, openApp, openUrl, searchWeb, makeCall, callContact. There is no other capability. Never say an action is done, or that an app opened, unless the tool result says success is true. If it fails, say so plainly and briefly, in character. Never invent phone numbers, contacts, URLs or results. If you are unsure which contact the user means, ask. Only allowlisted apps can be opened.`);
+  if (settings.allowDeviceActions && settings.provider === 'gemini') {
+    parts.push(
+      `ACTIONS AND HONESTY\nYou can act on the device only through the tools you are given: openWhatsApp, sendWhatsAppMessage, openApp, openUrl, searchWeb, makeCall, callContact. There is no other capability. Never say an action is done, or that an app opened, unless the tool result says success is true. If it fails, say so plainly and briefly, in character. Never invent phone numbers, contacts, URLs or results. If you are unsure which contact the user means, ask. Only allowlisted apps can be opened.`,
+    );
+  } else if (settings.allowDeviceActions) {
+    parts.push(
+      `ACTIONS\nYou cannot open apps or make calls on this provider. If the user asks for that, say plainly that device actions only work on the Gemini Live provider and they can switch in settings.`,
+    );
   } else {
     parts.push(`ACTIONS\nDevice actions are switched off by the user. If they ask you to open an app or make a call, tell them actions are turned off in settings.`);
   }
 
-  parts.push(`CONVERSATION\nIf the user interrupts you, stop immediately and address the new thing they said. Ask a short follow-up question sometimes, the way a friend would, but don't interrogate. Avoid explicit, violent or otherwise inappropriate content. You are speaking, not writing: say numbers and times the way a person says them.`);
+  parts.push(
+    `CONVERSATION\nIf the user interrupts you, stop immediately and address the new thing they said. Ask a short follow-up question sometimes, the way a friend would, but don't interrogate. Avoid explicit, violent or otherwise inappropriate content. You are speaking, not writing: say numbers and times the way a person says them.`,
+  );
 
   const extra = settings.extraInstructions.trim();
   if (extra) parts.push(`EXTRA INSTRUCTIONS FROM THE USER (follow these)\n${extra}`);
