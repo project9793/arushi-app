@@ -16,6 +16,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
@@ -240,13 +241,13 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
 /**
  * Gemini Live over a raw WebSocket.
  *
- * Order matters: the socket must complete `setup` before any realtimeInput is
- * sent, otherwise the server ignores the session and the UI just sits on
- * "Connecting". The mic is therefore started from `onReady`, never before.
+ * Two attempts, in order:
+ *  1. ephemeral token on the constrained v1alpha endpoint
+ *  2. the API key directly on v1beta
  *
- * The websocket cannot take the API key directly, so we mint a short-lived
- * ephemeral token over REST (`v1alpha/auth_tokens`) and connect to the
- * constrained v1alpha endpoint with ?access_token=.
+ * The setup payload is deliberately minimal. Extra blocks (transcription,
+ * compression, resumption) made the server accept the socket and then never
+ * answer, which looked like a hang with no error.
  */
 class GeminiLive(
     private val settings: AppSettings,
@@ -264,10 +265,11 @@ class GeminiLive(
 
     private var socket: WebSocket? = null
     private val isReady = AtomicBoolean(false)
+    private var announced = false
+    private var lastRawFrame = ""
 
     private fun mintToken(): String? {
-        val paths = listOf("auth_tokens", "authTokens")
-        for (path in paths) {
+        for (path in listOf("auth_tokens", "authTokens")) {
             try {
                 val body = "{\"uses\":0}".toRequestBody("application/json".toMediaType())
                 val request = Request.Builder()
@@ -278,56 +280,87 @@ class GeminiLive(
                 client.newCall(request).execute().use { response ->
                     val text = response.body?.string().orEmpty()
                     if (!response.isSuccessful) {
-                        onError("Token request failed (HTTP " + response.code + "): " + text.take(140))
+                        lastRawFrame = "token HTTP " + response.code + ": " + text.take(120)
                         return@use
                     }
                     val name = JSONObject(text).optString("name")
                     if (name.isNotBlank()) return name
                 }
             } catch (error: Exception) {
-                onError("Token request failed: " + (error.message ?: ""))
+                lastRawFrame = "token error: " + (error.message ?: "")
             }
         }
         return null
     }
 
-    fun connect() {
-        thread(name = "arushi-connect") {
-            val token = mintToken()
-            val url = if (token != null) {
-                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token
-            } else {
-                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey
+    private fun openSocket(url: String, waitSeconds: Long): Boolean {
+        val latch = CountDownLatch(1)
+
+        socket = client.newWebSocket(Request.Builder().url(url).build(), object : WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                webSocket.send(setupMessage())
             }
 
-            val request = Request.Builder().url(url).build()
-            socket = client.newWebSocket(request, object : WebSocketListener() {
-                override fun onOpen(webSocket: WebSocket, response: Response) {
-                    webSocket.send(setupMessage())
-                }
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                handleMessage(text)
+                if (isReady.get()) latch.countDown()
+            }
 
-                override fun onMessage(webSocket: WebSocket, text: String) {
-                    handleMessage(text)
-                }
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                lastRawFrame = "socket failure: " + (t.message ?: "unknown")
+                latch.countDown()
+            }
 
-                override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                    onError("Connection failed: " + (t.message ?: "unknown error"))
-                }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                lastRawFrame = "closed " + code + ": " + reason
+                latch.countDown()
+            }
+        })
 
-                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                    onClosed(reason.ifBlank { "code " + code })
-                }
-            })
+        val answered = latch.await(waitSeconds, TimeUnit.SECONDS)
+        if (answered && isReady.get()) return true
 
-            // If setup never completes the UI would hang on "Connecting".
-            thread(name = "arushi-watchdog") {
-                try {
-                    Thread.sleep(15000)
-                } catch (_: InterruptedException) {
+        try {
+            socket?.close(1000, "retry")
+        } catch (_: Exception) {
+        }
+        socket = null
+        isReady.set(false)
+        return false
+    }
+
+    fun connect() {
+        thread(name = "arushi-connect") {
+            val problems = mutableListOf<String>()
+
+            val token = mintToken()
+            var connected = false
+
+            if (token != null) {
+                connected = openSocket(
+                    "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token,
+                    10
+                )
+                if (!connected) problems.add("token endpoint silent (" + lastRawFrame + ")")
+            } else {
+                problems.add(lastRawFrame.ifBlank { "token minting failed" })
+            }
+
+            if (!connected) {
+                connected = openSocket(
+                    "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey,
+                    12
+                )
+                if (!connected) problems.add("direct endpoint silent (" + lastRawFrame + ")")
+            }
+
+            if (connected) {
+                if (!announced) {
+                    announced = true
+                    onReady()
                 }
-                if (!isReady.get()) {
-                    onError("Gemini did not finish setup in 15s. Check the API key and that gemini-3.8-live is enabled for it.")
-                }
+            } else {
+                onError("Could not start Gemini — " + problems.joinToString(" | "))
             }
         }
     }
@@ -359,9 +392,6 @@ class GeminiLive(
             JSONObject().put("parts", JSONArray().put(JSONObject().put("text", instruction)))
         )
 
-        setup.put("inputAudioTranscription", JSONObject())
-        setup.put("outputAudioTranscription", JSONObject())
-
         root.put("setup", setup)
         return root.toString()
     }
@@ -370,28 +400,34 @@ class GeminiLive(
         try {
             val obj = JSONObject(text)
 
-            // Surface server-side errors instead of failing silently.
             val error = obj.optJSONObject("error")
             if (error != null) {
-                onError("Gemini error: " + error.optString("message").take(180))
+                lastRawFrame = "error: " + error.optString("message").take(160)
+                onError("Gemini error: " + lastRawFrame)
                 return
             }
 
             if (obj.has("setupComplete")) {
                 isReady.set(true)
-                onReady()
+                if (!announced) {
+                    announced = true
+                    onReady()
+                }
                 return
             }
 
-            val content = obj.optJSONObject("serverContent") ?: return
+            val content = obj.optJSONObject("serverContent")
+            if (content == null) {
+                if (lastRawFrame.isBlank()) lastRawFrame = "unexpected frame: " + text.take(120)
+                return
+            }
+
             val parts = content.optJSONObject("modelTurn")?.optJSONArray("parts")
             if (parts != null) {
                 for (index in 0 until parts.length()) {
                     val inline = parts.optJSONObject(index)?.optJSONObject("inlineData") ?: continue
                     val data = inline.optString("data")
-                    if (data.isNotEmpty()) {
-                        onAudio(Base64.decode(data, Base64.DEFAULT))
-                    }
+                    if (data.isNotEmpty()) onAudio(Base64.decode(data, Base64.DEFAULT))
                 }
             }
 
@@ -402,7 +438,7 @@ class GeminiLive(
                 if (it.isNotBlank()) onTranscript("user", it)
             }
         } catch (error: Exception) {
-            onError("Bad message from Gemini: " + (error.message ?: ""))
+            lastRawFrame = "parse error: " + (error.message ?: "")
         }
     }
 
