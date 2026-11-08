@@ -15,14 +15,22 @@ PERMISSIONS = [
 ]
 
 PACKAGES = [
-    'com.whatsapp', 'com.whatsapp.w4b', 'com.google.android.youtube', 'com.instagram.android',
-    'com.facebook.katana', 'org.telegram.messenger', 'com.snapchat.android', 'com.twitter.android',
-    'com.linkedin.android', 'com.google.android.gm', 'com.google.android.apps.maps',
-    'com.spotify.music', 'com.netflix.mediaclient', 'in.startv.hotstar',
-    'in.amazon.mShop.android.shopping', 'com.flipkart.android', 'com.application.zomato',
-    'in.swiggy.android', 'net.one97.paytm', 'com.phonepe.app',
-    'com.google.android.apps.nbu.paisa.user', 'com.ubercab', 'com.olacabs.customer',
-    'com.android.chrome', 'com.google.android.dialer', 'com.google.android.GoogleCamera',
+    'com.whatsapp',
+    'com.google.android.youtube',
+    'com.instagram.android',
+    'com.facebook.katana',
+    'org.telegram.messenger',
+    'com.twitter.android',
+    'com.linkedin.android',
+    'com.google.android.gm',
+    'com.google.android.apps.maps',
+    'com.spotify.music',
+    'com.netflix.mediaclient',
+    'in.amazon.mShop.android.shopping',
+    'com.flipkart.android',
+    'com.android.chrome',
+    'com.google.android.dialer',
+    'com.google.android.GoogleCamera',
     'com.android.settings',
 ]
 

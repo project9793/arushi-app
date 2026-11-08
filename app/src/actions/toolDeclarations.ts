@@ -23,7 +23,7 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
   {
     name: 'openApp',
     description:
-      'Open one of the allowlisted installed apps. Supported: WhatsApp, WhatsApp Business, YouTube, Instagram, Facebook, Telegram, Snapchat, X, LinkedIn, Gmail, Google Maps, Spotify, Netflix, JioHotstar, Amazon, Flipkart, Zomato, Swiggy, Paytm, PhonePe, Google Pay, Uber, Ola, Chrome, Phone, Camera, Settings.',
+      'Open one of the allowlisted installed apps. Supported: WhatsApp, YouTube, Instagram, Facebook, Telegram, X, LinkedIn, Gmail, Google Maps, Spotify, Netflix, Amazon, Flipkart, Chrome, Phone, Camera, Settings. Any other app is not supported.',
     parametersJsonSchema: {
       type: 'object',
       properties: { appName: { type: 'string', description: 'Name of the app as the user said it.' } },

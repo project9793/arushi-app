@@ -31,28 +31,18 @@ public class ArushiDeviceBridge {
 
     static {
         PACKAGES.put("whatsapp", "com.whatsapp");
-        PACKAGES.put("whatsapp-business", "com.whatsapp.w4b");
         PACKAGES.put("youtube", "com.google.android.youtube");
         PACKAGES.put("instagram", "com.instagram.android");
         PACKAGES.put("facebook", "com.facebook.katana");
         PACKAGES.put("telegram", "org.telegram.messenger");
-        PACKAGES.put("snapchat", "com.snapchat.android");
         PACKAGES.put("x", "com.twitter.android");
         PACKAGES.put("linkedin", "com.linkedin.android");
         PACKAGES.put("gmail", "com.google.android.gm");
         PACKAGES.put("maps", "com.google.android.apps.maps");
         PACKAGES.put("spotify", "com.spotify.music");
         PACKAGES.put("netflix", "com.netflix.mediaclient");
-        PACKAGES.put("hotstar", "in.startv.hotstar");
         PACKAGES.put("amazon", "in.amazon.mShop.android.shopping");
         PACKAGES.put("flipkart", "com.flipkart.android");
-        PACKAGES.put("zomato", "com.application.zomato");
-        PACKAGES.put("swiggy", "in.swiggy.android");
-        PACKAGES.put("paytm", "net.one97.paytm");
-        PACKAGES.put("phonepe", "com.phonepe.app");
-        PACKAGES.put("gpay", "com.google.android.apps.nbu.paisa.user");
-        PACKAGES.put("uber", "com.ubercab");
-        PACKAGES.put("ola", "com.olacabs.customer");
         PACKAGES.put("chrome", "com.android.chrome");
         PACKAGES.put("phone", "com.google.android.dialer");
         PACKAGES.put("camera", "com.google.android.GoogleCamera");
