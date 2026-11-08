@@ -1,19 +1,19 @@
 /**
- * Microphone -> 16 kHz mono PCM16 worklet.
+ * Microphone -> mono PCM16 worklet.
  *
- * Runs on the audio rendering thread. It downsamples whatever the device gives
- * us (44.1 kHz / 48 kHz typically) to the 16 kHz the Live API expects, converts
- * to signed 16-bit little-endian, and posts 100 ms chunks to the main thread.
+ * The target sample rate is passed in via processorOptions so the same worklet
+ * serves Gemini (16 kHz) and the providers that want 24 kHz.
  */
 
-const TARGET_SAMPLE_RATE = 16000;
-const CHUNK_SAMPLES = 1600; // 100 ms at 16 kHz
+const CHUNK_SAMPLES = 1600;
 const LEVEL_EVERY_N_BLOCKS = 16;
 
 class ArushiPcmCapture extends AudioWorkletProcessor {
-  constructor() {
+  constructor(options) {
     super();
-    this.ratio = sampleRate / TARGET_SAMPLE_RATE;
+    const target = options && options.processorOptions && options.processorOptions.targetSampleRate;
+    this.targetSampleRate = typeof target === 'number' && target > 0 ? target : 16000;
+    this.ratio = sampleRate / this.targetSampleRate;
     this.readPos = 0;
     this.prevSample = 0;
     this.pcm = new Int16Array(CHUNK_SAMPLES);
