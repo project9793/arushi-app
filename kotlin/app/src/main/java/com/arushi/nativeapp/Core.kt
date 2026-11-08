@@ -241,13 +241,12 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
 /**
  * Gemini Live over a raw WebSocket.
  *
- * Two attempts, in order:
- *  1. ephemeral token on the constrained v1alpha endpoint
- *  2. the API key directly on v1beta
+ * The model name is discovered from the key itself (the same call the web build
+ * uses) instead of being hard-coded, because a hard-coded name that the project
+ * cannot use makes the server accept the socket and then stay silent.
  *
- * The setup payload is deliberately minimal. Extra blocks (transcription,
- * compression, resumption) made the server accept the socket and then never
- * answer, which looked like a hang with no error.
+ * Every frame the server sends is kept for the error message, so a failure says
+ * what the server actually replied instead of just a close code.
  */
 class GeminiLive(
     private val settings: AppSettings,
@@ -266,7 +265,43 @@ class GeminiLive(
     private var socket: WebSocket? = null
     private val isReady = AtomicBoolean(false)
     private var announced = false
-    private var lastRawFrame = ""
+    private var liveModel = "gemini-3.8-live"
+    private val frames = mutableListOf<String>()
+    private var closingByUs = false
+
+    private fun note(text: String) {
+        if (frames.size < 4) frames.add(text.take(180))
+    }
+
+    /** Ask the key which Live model it can actually use. */
+    private fun discoverModel() {
+        try {
+            val request = Request.Builder()
+                .url("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=" + settings.apiKey)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    note("models HTTP " + response.code + ": " + body.take(120))
+                    return
+                }
+                val array = JSONObject(body).optJSONArray("models") ?: return
+                val names = (0 until array.length()).mapNotNull { index ->
+                    array.optJSONObject(index)?.optString("name")?.removePrefix("models/")
+                }
+                val live = names.filter { it.contains("live", true) || it.contains("native-audio", true) }
+                if (live.isNotEmpty()) {
+                    liveModel = live.firstOrNull { it.contains("3.8") } ?: live.first()
+                    note("model: " + liveModel)
+                } else {
+                    note("no live model in " + names.size + " models")
+                }
+            }
+        } catch (error: Exception) {
+            note("models error: " + (error.message ?: ""))
+        }
+    }
 
     private fun mintToken(): String? {
         for (path in listOf("auth_tokens", "authTokens")) {
@@ -280,14 +315,14 @@ class GeminiLive(
                 client.newCall(request).execute().use { response ->
                     val text = response.body?.string().orEmpty()
                     if (!response.isSuccessful) {
-                        lastRawFrame = "token HTTP " + response.code + ": " + text.take(120)
+                        note("token HTTP " + response.code + ": " + text.take(120))
                         return@use
                     }
                     val name = JSONObject(text).optString("name")
                     if (name.isNotBlank()) return name
                 }
             } catch (error: Exception) {
-                lastRawFrame = "token error: " + (error.message ?: "")
+                note("token error: " + (error.message ?: ""))
             }
         }
         return null
@@ -295,6 +330,7 @@ class GeminiLive(
 
     private fun openSocket(url: String, waitSeconds: Long): Boolean {
         val latch = CountDownLatch(1)
+        closingByUs = false
 
         socket = client.newWebSocket(Request.Builder().url(url).build(), object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -307,12 +343,12 @@ class GeminiLive(
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                lastRawFrame = "socket failure: " + (t.message ?: "unknown")
+                note("socket failure: " + (t.message ?: "unknown"))
                 latch.countDown()
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                lastRawFrame = "closed " + code + ": " + reason
+                if (!closingByUs) note("closed " + code + ": " + reason.ifBlank { "no reason" })
                 latch.countDown()
             }
         })
@@ -320,6 +356,7 @@ class GeminiLive(
         val answered = latch.await(waitSeconds, TimeUnit.SECONDS)
         if (answered && isReady.get()) return true
 
+        closingByUs = true
         try {
             socket?.close(1000, "retry")
         } catch (_: Exception) {
@@ -333,6 +370,7 @@ class GeminiLive(
         thread(name = "arushi-connect") {
             val problems = mutableListOf<String>()
 
+            discoverModel()
             val token = mintToken()
             var connected = false
 
@@ -341,9 +379,9 @@ class GeminiLive(
                     "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token,
                     10
                 )
-                if (!connected) problems.add("token endpoint silent (" + lastRawFrame + ")")
+                if (!connected) problems.add("token endpoint silent")
             } else {
-                problems.add(lastRawFrame.ifBlank { "token minting failed" })
+                problems.add("no token")
             }
 
             if (!connected) {
@@ -351,7 +389,7 @@ class GeminiLive(
                     "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey,
                     12
                 )
-                if (!connected) problems.add("direct endpoint silent (" + lastRawFrame + ")")
+                if (!connected) problems.add("direct endpoint silent")
             }
 
             if (connected) {
@@ -360,7 +398,10 @@ class GeminiLive(
                     onReady()
                 }
             } else {
-                onError("Could not start Gemini — " + problems.joinToString(" | "))
+                onError(
+                    "Could not start Gemini (" + problems.joinToString(", ") + ") model=" + liveModel +
+                        " | server said: " + frames.joinToString(" / ").ifBlank { "nothing at all" }
+                )
             }
         }
     }
@@ -376,7 +417,7 @@ class GeminiLive(
 
         val root = JSONObject()
         val setup = JSONObject()
-        setup.put("model", "models/gemini-3.8-live")
+        setup.put("model", "models/" + liveModel)
 
         val generation = JSONObject()
         generation.put("responseModalities", JSONArray().put("AUDIO"))
@@ -402,8 +443,8 @@ class GeminiLive(
 
             val error = obj.optJSONObject("error")
             if (error != null) {
-                lastRawFrame = "error: " + error.optString("message").take(160)
-                onError("Gemini error: " + lastRawFrame)
+                note("error: " + text.take(180))
+                onError("Gemini error: " + text.take(200))
                 return
             }
 
@@ -418,7 +459,7 @@ class GeminiLive(
 
             val content = obj.optJSONObject("serverContent")
             if (content == null) {
-                if (lastRawFrame.isBlank()) lastRawFrame = "unexpected frame: " + text.take(120)
+                note("frame: " + text.take(140))
                 return
             }
 
@@ -438,7 +479,7 @@ class GeminiLive(
                 if (it.isNotBlank()) onTranscript("user", it)
             }
         } catch (error: Exception) {
-            lastRawFrame = "parse error: " + (error.message ?: "")
+            note("parse error: " + (error.message ?: ""))
         }
     }
 
@@ -461,6 +502,7 @@ class GeminiLive(
 
     fun close() {
         isReady.set(false)
+        closingByUs = true
         socket?.close(1000, "client closed")
         socket = null
     }
