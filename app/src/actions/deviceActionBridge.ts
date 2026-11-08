@@ -45,8 +45,6 @@ export async function openWhatsApp(): Promise<ActionResult> {
     }
   }
 
-  // wa.me is the official deep link: Android hands it to the installed app,
-  // desktop lands on WhatsApp Web.
   if (openTab('https://wa.me/')) {
     return {
       success: true,
@@ -63,6 +61,63 @@ export async function openWhatsApp(): Promise<ActionResult> {
     mode,
     error: 'The browser blocked the new tab, so WhatsApp was not opened.',
   };
+}
+
+export async function sendWhatsAppMessage(phoneNumber: string, message: string): Promise<ActionResult> {
+  const mode = getPlatformMode();
+  const bridge = getNativeBridge();
+
+  const validated = validatePhoneNumber(phoneNumber);
+  if (!validated.ok) {
+    return { success: false, action: 'sendWhatsAppMessage', mode, error: validated.error };
+  }
+
+  const text = (message ?? '').trim().slice(0, 1000);
+  if (!text) {
+    return { success: false, action: 'sendWhatsAppMessage', mode, error: 'No message text was provided.' };
+  }
+
+  // wa.me wants the international number without a leading plus.
+  const digits = validated.value.dialable.replace(/^\+/, '');
+  const url = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+
+  if (bridge) {
+    try {
+      const result = await bridge.openUrl(url);
+      log.info('Native WhatsApp message link', { result });
+      return result.success
+        ? {
+            success: true,
+            action: 'sendWhatsAppMessage',
+            mode,
+            detail: `Opened WhatsApp chat with ${validated.value.display} and the message typed in. The user still presses send.`,
+          }
+        : { success: false, action: 'sendWhatsAppMessage', mode, error: result.error ?? 'WhatsApp could not be opened' };
+    } catch (error) {
+      log.error('Native WhatsApp message threw', describeError(error));
+      return { success: false, action: 'sendWhatsAppMessage', mode, error: describeError(error) };
+    }
+  }
+
+  if (!openTab(url)) {
+    return { success: false, action: 'sendWhatsAppMessage', mode, error: 'The browser blocked the new tab.' };
+  }
+
+  return {
+    success: true,
+    action: 'sendWhatsAppMessage',
+    mode,
+    detail: `Opened WhatsApp with ${validated.value.display} and the message typed in. The user still presses send.`,
+  };
+}
+
+export async function searchWeb(query: string): Promise<ActionResult> {
+  const trimmed = (query ?? '').trim();
+  if (!trimmed) {
+    return { success: false, action: 'searchWeb', mode: getPlatformMode(), error: 'No search query was provided.' };
+  }
+  const result = await openUrl(`https://www.google.com/search?q=${encodeURIComponent(trimmed.slice(0, 200))}`);
+  return { ...result, action: 'searchWeb' };
 }
 
 export async function openApp(appName: string): Promise<ActionResult> {
@@ -102,12 +157,7 @@ export async function openApp(appName: string): Promise<ActionResult> {
   }
 
   if (!openTab(target.webUrl)) {
-    return {
-      success: false,
-      action: 'openApp',
-      mode,
-      error: 'The browser blocked the new tab.',
-    };
+    return { success: false, action: 'openApp', mode, error: 'The browser blocked the new tab.' };
   }
 
   return {
@@ -174,7 +224,6 @@ export async function makeCall(phoneNumber: string): Promise<ActionResult> {
     }
   }
 
-  // Browser: `tel:` opens the dialer. The call itself is never auto-placed.
   window.location.href = `tel:${validated.value.dialable}`;
   return {
     success: true,
@@ -217,7 +266,8 @@ export async function callContact(contactName: string): Promise<ActionResult> {
       success: false,
       action: 'callContact',
       mode,
-      error: 'Multiple contacts match that name. Ask the user which one they mean, then call makeCall with the number they confirm.',
+      error:
+        'Multiple contacts match that name. Ask the user which one they mean, then call makeCall with the number they confirm.',
       contacts: result.matches.slice(0, 5).map((match) => ({
         name: match.name,
         phoneNumber: match.phoneNumber,
