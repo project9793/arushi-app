@@ -33,15 +33,12 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
           "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" > /dev/null 2>&1 || true
 
-      # The Gradle CDN throws occasional 504s and truncated zips, so try three
-      # mirrors with retries and only accept a file that unzip can verify.
       - name: Install Gradle
         run: |
           set -u
           URLS=(
             "https://services.gradle.org/distributions/gradle-8.11.1-bin.zip"
             "https://downloads.gradle.org/distributions/gradle-8.11.1-bin.zip"
-            "https://downloads.gradle-dn.com/distributions/gradle-8.11.1-bin.zip"
           )
           ok=0
           for url in "${URLS[@]}"; do
@@ -58,11 +55,20 @@ jobs:
             done
           done
           if [ "$ok" != "1" ]; then echo "could not download Gradle"; exit 1; fi
-          /opt/gradle-8.11.1/bin/gradle --version
 
+      # Dependency downloads go through a CDN that sometimes returns 504, so the
+      # whole build is retried; each retry reuses what was already cached.
       - name: Build debug APK
         working-directory: kotlin
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          for attempt in 1 2 3; do
+            echo "Build attempt $attempt"
+            if /opt/gradle-8.11.1/bin/gradle assembleDebug --no-daemon --stacktrace; then
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1
 
       - name: Collect APK
         run: cp kotlin/app/build/outputs/apk/debug/app-debug.apk arushi-kotlin-debug.apk
