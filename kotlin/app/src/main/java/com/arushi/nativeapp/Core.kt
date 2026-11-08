@@ -241,12 +241,9 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
 /**
  * Gemini Live over a raw WebSocket.
  *
- * The model name is discovered from the key itself (the same call the web build
- * uses) instead of being hard-coded, because a hard-coded name that the project
- * cannot use makes the server accept the socket and then stay silent.
- *
- * Every frame the server sends is kept for the error message, so a failure says
- * what the server actually replied instead of just a close code.
+ * Attempt order matters. The browser build that works in practice talks to the
+ * plain v1beta endpoint with the key in the query string, so that is tried
+ * first; the ephemeral-token endpoint is the second attempt.
  */
 class GeminiLive(
     private val settings: AppSettings,
@@ -270,10 +267,9 @@ class GeminiLive(
     private var closingByUs = false
 
     private fun note(text: String) {
-        if (frames.size < 4) frames.add(text.take(180))
+        if (frames.size < 5) frames.add(text.take(160))
     }
 
-    /** Ask the key which Live model it can actually use. */
     private fun discoverModel() {
         try {
             val request = Request.Builder()
@@ -283,7 +279,7 @@ class GeminiLive(
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string().orEmpty()
                 if (!response.isSuccessful) {
-                    note("models HTTP " + response.code + ": " + body.take(120))
+                    note("models HTTP " + response.code)
                     return
                 }
                 val array = JSONObject(body).optJSONArray("models") ?: return
@@ -293,9 +289,6 @@ class GeminiLive(
                 val live = names.filter { it.contains("live", true) || it.contains("native-audio", true) }
                 if (live.isNotEmpty()) {
                     liveModel = live.firstOrNull { it.contains("3.8") } ?: live.first()
-                    note("model: " + liveModel)
-                } else {
-                    note("no live model in " + names.size + " models")
                 }
             }
         } catch (error: Exception) {
@@ -315,7 +308,7 @@ class GeminiLive(
                 client.newCall(request).execute().use { response ->
                     val text = response.body?.string().orEmpty()
                     if (!response.isSuccessful) {
-                        note("token HTTP " + response.code + ": " + text.take(120))
+                        note("token HTTP " + response.code)
                         return@use
                     }
                     val name = JSONObject(text).optString("name")
@@ -371,25 +364,24 @@ class GeminiLive(
             val problems = mutableListOf<String>()
 
             discoverModel()
-            val token = mintToken()
-            var connected = false
 
-            if (token != null) {
-                connected = openSocket(
-                    "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token,
-                    10
-                )
-                if (!connected) problems.add("token endpoint silent")
-            } else {
-                problems.add("no token")
-            }
+            var connected = openSocket(
+                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey,
+                12
+            )
+            if (!connected) problems.add("direct key endpoint silent")
 
             if (!connected) {
-                connected = openSocket(
-                    "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey,
-                    12
-                )
-                if (!connected) problems.add("direct endpoint silent")
+                val token = mintToken()
+                if (token != null) {
+                    connected = openSocket(
+                        "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token,
+                        10
+                    )
+                    if (!connected) problems.add("token endpoint silent")
+                } else {
+                    problems.add("no token")
+                }
             }
 
             if (connected) {
@@ -443,7 +435,7 @@ class GeminiLive(
 
             val error = obj.optJSONObject("error")
             if (error != null) {
-                note("error: " + text.take(180))
+                note("error frame")
                 onError("Gemini error: " + text.take(200))
                 return
             }
@@ -459,7 +451,7 @@ class GeminiLive(
 
             val content = obj.optJSONObject("serverContent")
             if (content == null) {
-                note("frame: " + text.take(140))
+                note("frame: " + text.take(120))
                 return
             }
 
