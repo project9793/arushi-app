@@ -21,7 +21,7 @@ const log = createLogger('controller');
 
 export type SnapshotListener = (snapshot: ArushiSnapshot) => void;
 
-const MAX_TRANSCRIPT_LINES = 40;
+const MAX_TRANSCRIPT_LINES = 80;
 
 export class ArushiController {
   private listeners = new Set<SnapshotListener>();
@@ -177,7 +177,6 @@ export class ArushiController {
     log.info(`Starting with provider: ${settings.provider}`);
 
     try {
-      // Output AudioContext first, while we are still inside the tap gesture.
       await ensureOutputRunning();
       this.update({ audioContextState: getOutputState(), outputSampleRate: getOutputSampleRate() });
 
@@ -233,6 +232,20 @@ export class ArushiController {
     const state = this.snapshot.state;
     if (state === 'idle' || state === 'error') await this.start();
     else this.stop();
+  }
+
+  /** Typed message from the ask bar or the chat screen. */
+  sendText(text: string): void {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    if (!this.provider) {
+      this.fail('Start the assistant first — tap the mic once, then type.');
+      return;
+    }
+
+    this.pushTranscript('user', trimmed, true);
+    this.provider.sendText?.(trimmed);
   }
 
   private teardown(): void {
