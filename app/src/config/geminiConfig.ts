@@ -7,8 +7,9 @@ import {
 } from '@google/genai';
 import { TOOL_DECLARATIONS } from '../actions/toolDeclarations';
 
-export const DEFAULT_MODEL = 'gemini-3.1-flash-live-preview';
+export const DEFAULT_MODEL = 'gemini-3.8-live';
 export const FALLBACK_MODELS = [
+  'gemini-3.8-live',
   'gemini-3.1-flash-live-preview',
   'gemini-2.5-flash-native-audio-preview-12-2025',
   'gemini-2.5-flash-native-audio-latest',
@@ -50,6 +51,16 @@ CONVERSATION
 - Avoid explicit, violent or otherwise inappropriate content. Keep the charm, drop the edge.
 - You are speaking, not writing: say numbers and times the way a person says them.`;
 
+/**
+ * Deliberately minimal setup payload.
+ *
+ * Earlier versions also sent contextWindowCompression, sessionResumption and
+ * empty transcription configs. On a model that does not accept one of those
+ * fields, the socket opens and is then dropped before setup completes, which
+ * surfaces as a bare close code 1006 with no reason. Only what the assistant
+ * actually needs is sent here; optional extras can come back once the session
+ * is known to be healthy.
+ */
 export function buildLiveConfig(): LiveConnectConfig {
   return {
     responseModalities: [Modality.AUDIO],
@@ -58,8 +69,6 @@ export function buildLiveConfig(): LiveConnectConfig {
       voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE_NAME } },
     },
     tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
-    inputAudioTranscription: {},
-    outputAudioTranscription: {},
     realtimeInputConfig: {
       automaticActivityDetection: {
         disabled: false,
@@ -70,8 +79,6 @@ export function buildLiveConfig(): LiveConnectConfig {
       },
       activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
     },
-    contextWindowCompression: { slidingWindow: {} },
-    sessionResumption: {},
   };
 }
 
