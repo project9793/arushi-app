@@ -11,7 +11,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 
 /** Owns the live session so the UI stays declarative. */
@@ -33,7 +33,7 @@ class VoiceSession(
 
     fun start(settings: AppSettings) {
         if (settings.apiKey.isBlank()) {
-            onError("No Gemini API key yet. Open Settings and paste your key.")
+            onError("No Gemini API key yet. Open Setting and paste your key.")
             onState("error")
             return
         }
@@ -149,7 +149,7 @@ fun AppRoot(prefs: Prefs, history: HistoryStore) {
     }
 
     FantasyBackground {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             if (inTalk) {
                 TalkContent(state = state, transcript = transcript, error = error, onStop = { stopTalking() })
             } else {
@@ -159,7 +159,8 @@ fun AppRoot(prefs: Prefs, history: HistoryStore) {
                     onExit = { session.stop() }
                 )
 
-                Column(modifier = Modifier.fillMaxSize().padding(bottom = 4.dp)) {
+                // weight(1f) keeps the bottom bar on screen.
+                Column(modifier = Modifier.weight(1f)) {
                     when (tab) {
                         "home" -> HomeContent(
                             settings = settings,
@@ -192,7 +193,9 @@ fun AppRoot(prefs: Prefs, history: HistoryStore) {
                     }
                 }
 
-                BottomBar(active = tab, onSelect = { tab = it })
+                Column(modifier = Modifier.navigationBarsPadding()) {
+                    BottomBar(active = tab, onSelect = { tab = it })
+                }
             }
         }
     }

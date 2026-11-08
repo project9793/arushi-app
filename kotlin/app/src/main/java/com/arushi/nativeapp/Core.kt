@@ -3,13 +3,14 @@ package com.arushi.nativeapp
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.AudioTrack
 import android.media.MediaRecorder
 import android.util.Base64
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -231,11 +232,18 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
     companion object {
         const val SAMPLE_RATE_IN = 16000
         const val SAMPLE_RATE_OUT = 24000
-        const val CHUNK_SAMPLES = 1600 // 100 ms at 16 kHz
+        const val CHUNK_SAMPLES = 1600
     }
 }
 
-/** Raw Gemini Live websocket: PCM16 in, PCM16 out. */
+/**
+ * Gemini Live over a raw WebSocket.
+ *
+ * The API key itself cannot be used on the websocket any more, so we mint a
+ * short-lived ephemeral token over REST and connect to the constrained v1alpha
+ * endpoint with ?access_token=. If minting fails we fall back to the plain key
+ * on v1beta so the user still sees a real error instead of silence.
+ */
 class GeminiLive(
     private val settings: AppSettings,
     private val onAudio: (ByteArray) -> Unit,
@@ -251,32 +259,59 @@ class GeminiLive(
 
     private var socket: WebSocket? = null
 
+    private fun mintToken(): String? {
+        return try {
+            val body = "{\"uses\":0}".toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("https://generativelanguage.googleapis.com/v1alpha/authTokens?key=" + settings.apiKey)
+                .post(body)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                val text = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    onError("Token request failed (HTTP " + response.code + "): " + text.take(160))
+                    return null
+                }
+                JSONObject(text).optString("name").ifBlank { null }
+            }
+        } catch (error: Exception) {
+            onError("Token request failed: " + (error.message ?: ""))
+            null
+        }
+    }
+
     fun connect() {
-        val url =
-            "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey
-        val request = Request.Builder().url(url).build()
-
-        socket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                webSocket.send(setupMessage())
+        thread(name = "arushi-connect") {
+            val token = mintToken()
+            val url = if (token != null) {
+                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + token
+            } else {
+                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + settings.apiKey
             }
 
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                handleMessage(text)
-            }
+            val request = Request.Builder().url(url).build()
+            socket = client.newWebSocket(request, object : WebSocketListener() {
+                override fun onOpen(webSocket: WebSocket, response: Response) {
+                    webSocket.send(setupMessage())
+                }
 
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                onError("Connection failed: " + (t.message ?: "unknown error"))
-            }
+                override fun onMessage(webSocket: WebSocket, text: String) {
+                    handleMessage(text)
+                }
 
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                onClosed(reason.ifBlank { "code $code" })
-            }
-        })
+                override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                    onError("Connection failed: " + (t.message ?: "unknown error"))
+                }
+
+                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                    onClosed(reason.ifBlank { "code " + code })
+                }
+            })
+        }
     }
 
     private fun setupMessage(): String {
-        val model = if (settings.language == "auto") "models/gemini-3.8-live" else "models/gemini-3.8-live"
         val instruction = buildString {
             append(settings.persona)
             append("\n\nYour name is ").append(settings.name).append(".")
@@ -287,7 +322,7 @@ class GeminiLive(
 
         val root = JSONObject()
         val setup = JSONObject()
-        setup.put("model", model)
+        setup.put("model", "models/gemini-3.8-live")
 
         val generation = JSONObject()
         generation.put("responseModalities", JSONArray().put("AUDIO"))
@@ -298,10 +333,12 @@ class GeminiLive(
         generation.put("speechConfig", speech)
         setup.put("generationConfig", generation)
 
-        setup.put("systemInstruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", instruction))))
+        setup.put(
+            "systemInstruction",
+            JSONObject().put("parts", JSONArray().put(JSONObject().put("text", instruction)))
+        )
 
-        val transcription = JSONObject()
-        setup.put("inputAudioTranscription", transcription)
+        setup.put("inputAudioTranscription", JSONObject())
         setup.put("outputAudioTranscription", JSONObject())
 
         root.put("setup", setup)
