@@ -1,5 +1,4 @@
 import type { FunctionCall, FunctionResponse } from '@google/genai';
-import { getModelCandidates, VOICE_NAME } from '../config/geminiConfig';
 import { FunctionCalling, type ToolExecutionRecord } from '../actions/functionCalling';
 import { getPlatformLabel, getPlatformMode } from '../actions/nativeBridge';
 import {
@@ -11,9 +10,11 @@ import {
 } from './audioContextManager';
 import { AudioPlaybackQueue } from './audioPlaybackQueue';
 import { AudioStreamer } from './audioStreamer';
-import { resolveCredentials } from './credentials';
-import { ArushiLiveSession } from './liveSession';
 import { createLogger, describeError } from './logger';
+import { buildSystemInstruction, loadSettings, type AppSettings } from './settings';
+import { GeminiLiveProvider } from './providers/geminiProvider';
+import { createStreamingProvider } from './providers';
+import type { VoiceProvider, VoiceProviderEvents } from './providers/types';
 import type { AssistantState, ArushiSnapshot, TranscriptLine } from './types';
 
 const log = createLogger('controller');
@@ -27,7 +28,7 @@ export class ArushiController {
   private snapshot: ArushiSnapshot;
 
   private streamer: AudioStreamer | null = null;
-  private session: ArushiLiveSession | null = null;
+  private provider: VoiceProvider | null = null;
   private playback: AudioPlaybackQueue | null = null;
   private tools: FunctionCalling | null = null;
 
@@ -42,7 +43,7 @@ export class ArushiController {
       error: null,
       micLevel: 0,
       model: null,
-      voice: VOICE_NAME,
+      voice: 'Aoede',
       platform: getPlatformLabel(),
       native: getPlatformMode() === 'native',
       transcript: [],
@@ -102,6 +103,68 @@ export class ArushiController {
     this.currentAssistantLineId = null;
   }
 
+  private buildEvents(): VoiceProviderEvents {
+    return {
+      onReady: (model) => {
+        this.update({ model });
+        if (this.snapshot.state === 'connecting') this.setState('listening');
+      },
+      onAudio: (samples, sampleRate) => {
+        this.playback?.enqueue(samples, sampleRate);
+        this.update({ audioChunksIn: this.snapshot.audioChunksIn + 1 });
+      },
+      onUserTranscript: (text, finished) => this.pushTranscript('user', text, finished),
+      onAssistantTranscript: (text, finished) => this.pushTranscript('arushi', text, finished),
+      onInterrupted: () => {
+        this.playback?.clear('barge-in');
+        this.currentAssistantLineId = null;
+        if (this.snapshot.state === 'speaking') this.setState('listening');
+      },
+      onTurnComplete: () => {
+        this.currentAssistantLineId = null;
+        this.currentUserLineId = null;
+        this.playback?.notifyTurnComplete();
+      },
+      onError: (message, error) => this.fail(message, error),
+      onClosed: ({ reason, reconnecting }) => {
+        if (reconnecting) {
+          this.setState('connecting');
+          return;
+        }
+        if (this.snapshot.state !== 'error') {
+          this.setState('idle');
+          log.info('Session closed', { reason });
+        }
+      },
+    };
+  }
+
+  private async executeTools(calls: FunctionCall[]): Promise<FunctionResponse[]> {
+    if (!this.tools) return [];
+    const responses: FunctionResponse[] = [];
+    for (const call of calls) responses.push(await this.tools.execute(call));
+    return responses;
+  }
+
+  private createProvider(settings: AppSettings): VoiceProvider | null {
+    const events = this.buildEvents();
+
+    if (settings.provider === 'gemini') {
+      this.tools = new FunctionCalling((record) => this.onToolExecuted(record));
+      return new GeminiLiveProvider({
+        events,
+        onToolCall: (calls) => this.executeTools(calls),
+      });
+    }
+
+    return createStreamingProvider({
+      settings,
+      instructions: buildSystemInstruction(settings),
+      events,
+      geminiApiKey: '',
+    });
+  }
+
   async start(): Promise<void> {
     if (this.starting) return;
     if (this.snapshot.state === 'connecting' || this.snapshot.state === 'listening' || this.snapshot.state === 'speaking') {
@@ -110,26 +173,17 @@ export class ArushiController {
 
     this.starting = true;
     this.setState('connecting');
-    log.info('Arushi starting');
+    const settings = loadSettings();
+    log.info(`Starting with provider: ${settings.provider}`);
 
     try {
-      // Output AudioContext FIRST, while we are still inside the tap gesture.
+      // Output AudioContext first, while we are still inside the tap gesture.
       await ensureOutputRunning();
       this.update({ audioContextState: getOutputState(), outputSampleRate: getOutputSampleRate() });
 
-      const credentials = await resolveCredentials();
-      log.info('Credentials resolved', { source: credentials.source });
-
-      this.streamer = new AudioStreamer({
-        onChunk: (base64) => {
-          this.session?.sendAudio(base64);
-          const chunks = this.streamer?.chunks ?? 0;
-          if (chunks % 10 === 0) this.update({ micChunksSent: chunks });
-        },
-        onLevel: (rms) => this.update({ micLevel: rms }),
-        onError: (error) => this.fail('Microphone error', error),
-      });
-      await this.streamer.requestMicrophone();
+      const provider = this.createProvider(settings);
+      if (!provider) throw new Error('No voice provider is configured.');
+      this.provider = provider;
 
       this.playback = new AudioPlaybackQueue({
         onStart: () => {
@@ -140,55 +194,28 @@ export class ArushiController {
         },
       });
 
-      this.tools = new FunctionCalling((record) => this.onToolExecuted(record));
-
-      this.session = new ArushiLiveSession({
-        apiKey: credentials.apiKey,
-        models: credentials.model ? [credentials.model, ...getModelCandidates()] : getModelCandidates(),
-        handlers: {
-          onReady: (model) => {
-            this.update({ model });
-            if (this.snapshot.state === 'connecting') this.setState('listening');
-          },
-          onAudio: (audio) => {
-            this.playback?.enqueue(audio.samples, audio.sampleRate);
-            this.update({ audioChunksIn: this.session?.receivedChunks ?? 0 });
-          },
-          onModelText: (text) => log.debug('Model text part', { text: text.slice(0, 120) }),
-          onUserTranscript: (text, finished) => this.pushTranscript('user', text, finished),
-          onAssistantTranscript: (text, finished) => this.pushTranscript('arushi', text, finished),
-          onInterrupted: () => {
-            this.playback?.clear('barge-in');
-            this.currentAssistantLineId = null;
-            this.setState('listening');
-          },
-          onTurnComplete: () => {
-            this.currentAssistantLineId = null;
-            this.currentUserLineId = null;
-            this.playback?.notifyTurnComplete();
-          },
-          onToolCall: (calls) => this.executeTools(calls),
-          onError: (message, error) => this.fail(message, error),
-          onClosed: ({ reason, reconnecting }) => {
-            if (reconnecting) {
-              this.setState('connecting');
-              return;
-            }
-            if (this.snapshot.state !== 'error') {
-              this.setState('idle');
-              log.info('Session closed', { reason });
-            }
-          },
+      this.streamer = new AudioStreamer({
+        targetSampleRate: provider.inputSampleRate,
+        onChunk: (base64) => {
+          provider.sendAudio(base64);
+          const chunks = this.streamer?.chunks ?? 0;
+          if (chunks % 10 === 0) this.update({ micChunksSent: chunks });
         },
+        onLevel: (rms) => {
+          provider.handleLevel(rms);
+          this.update({ micLevel: rms });
+        },
+        onError: (error) => this.fail('Microphone error', error),
       });
 
-      await this.session.connect();
-
+      await this.streamer.requestMicrophone();
+      await provider.connect();
       await this.streamer.start();
+
       this.setState('listening');
-      log.info('Arushi is live', { model: this.session.model, voice: VOICE_NAME });
+      log.info(`Session live (${provider.name})`);
     } catch (error) {
-      this.fail('Could not start Arushi', error);
+      this.fail('Could not start the assistant', error);
       this.teardown();
     } finally {
       this.starting = false;
@@ -196,7 +223,7 @@ export class ArushiController {
   }
 
   stop(): void {
-    log.info('Arushi stopping');
+    log.info('Stopping');
     this.teardown();
     this.setState('idle');
     this.update({ micLevel: 0, micChunksSent: 0 });
@@ -204,11 +231,8 @@ export class ArushiController {
 
   async toggle(): Promise<void> {
     const state = this.snapshot.state;
-    if (state === 'idle' || state === 'error') {
-      await this.start();
-    } else {
-      this.stop();
-    }
+    if (state === 'idle' || state === 'error') await this.start();
+    else this.stop();
   }
 
   private teardown(): void {
@@ -218,8 +242,8 @@ export class ArushiController {
     this.playback?.clear('session stop');
     this.playback = null;
 
-    this.session?.close();
-    this.session = null;
+    this.provider?.close();
+    this.provider = null;
 
     this.tools = null;
     this.currentUserLineId = null;
@@ -232,18 +256,8 @@ export class ArushiController {
     this.setState('error', detail);
   }
 
-  private async executeTools(calls: FunctionCall[]): Promise<FunctionResponse[]> {
-    if (!this.tools) return [];
-    const responses: FunctionResponse[] = [];
-    for (const call of calls) {
-      responses.push(await this.tools.execute(call));
-    }
-    return responses;
-  }
-
   private onToolExecuted(record: ToolExecutionRecord): void {
-    const label = `${record.name}${record.result.success ? ' - ok' : ' - failed'}`;
-    this.update({ lastAction: label });
+    this.update({ lastAction: `${record.name}${record.result.success ? ' - ok' : ' - failed'}` });
   }
 
   async runSpeakerTest(): Promise<void> {

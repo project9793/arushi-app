@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import {
   DEFAULT_SETTINGS,
+  GROK_VOICES,
   PERSONA_PRESETS,
+  PROVIDERS,
+  SARVAM_LANGUAGES,
+  SARVAM_VOICES,
   VOICES,
   loadSettings,
   resetSettings,
@@ -9,6 +13,7 @@ import {
   type AppSettings,
   type LanguageMode,
   type PersonaPreset,
+  type ProviderId,
   type ReplyLength,
 } from '../core/settings';
 
@@ -17,8 +22,8 @@ const FIELD =
 const LABEL = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-violet-200/60';
 
 /**
- * Everything the user can change: who the assistant is, how it behaves, what
- * it sounds like and what language it speaks. Saved in this browser only.
+ * Everything the user can change: provider and its key, who the assistant is,
+ * how it behaves, what it sounds like and what language it speaks.
  */
 export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) => void }) {
   const [draft, setDraft] = useState<AppSettings>(() => loadSettings());
@@ -39,6 +44,8 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
     onSaved?.(fresh);
   };
 
+  const providerHint = PROVIDERS.find((provider) => provider.id === draft.provider)?.hint ?? '';
+
   return (
     <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-left">
       <div className="flex items-center justify-between gap-3">
@@ -47,6 +54,76 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
           {savedAt ? 'saved · tap the mic to apply' : 'not saved'}
         </span>
       </div>
+
+      <div className="mt-3">
+        <label className={LABEL} htmlFor="provider">
+          AI provider
+        </label>
+        <select
+          id="provider"
+          className={FIELD}
+          value={draft.provider}
+          onChange={(event) => patch({ provider: event.target.value as ProviderId })}
+        >
+          {PROVIDERS.map((provider) => (
+            <option key={provider.id} value={provider.id}>
+              {provider.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-[11px] leading-relaxed text-violet-200/40">{providerHint}</p>
+      </div>
+
+      {draft.provider === 'grok' ? (
+        <div className="mt-3">
+          <label className={LABEL} htmlFor="xai-key">
+            xAI API key
+          </label>
+          <input
+            id="xai-key"
+            type="password"
+            className={FIELD}
+            value={draft.xaiApiKey}
+            placeholder="xai-..."
+            onChange={(event) => patch({ xaiApiKey: event.target.value })}
+          />
+        </div>
+      ) : null}
+
+      {draft.provider === 'sarvam' ? (
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={LABEL} htmlFor="sarvam-key">
+              Sarvam API key
+            </label>
+            <input
+              id="sarvam-key"
+              type="password"
+              className={FIELD}
+              value={draft.sarvamApiKey}
+              placeholder="sk_..."
+              onChange={(event) => patch({ sarvamApiKey: event.target.value })}
+            />
+          </div>
+          <div>
+            <label className={LABEL} htmlFor="sarvam-language">
+              Sarvam language
+            </label>
+            <select
+              id="sarvam-language"
+              className={FIELD}
+              value={draft.sarvamLanguage}
+              onChange={(event) => patch({ sarvamLanguage: event.target.value })}
+            >
+              {SARVAM_LANGUAGES.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
@@ -97,18 +174,43 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
           <label className={LABEL} htmlFor="voice">
             Voice
           </label>
-          <select
-            id="voice"
-            className={FIELD}
-            value={draft.voice}
-            onChange={(event) => patch({ voice: event.target.value })}
-          >
-            {VOICES.map((voice) => (
-              <option key={voice} value={voice}>
-                {voice}
-              </option>
-            ))}
-          </select>
+          {draft.provider === 'gemini' ? (
+            <select id="voice" className={FIELD} value={draft.voice} onChange={(event) => patch({ voice: event.target.value })}>
+              {VOICES.map((voice) => (
+                <option key={voice} value={voice}>
+                  {voice}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          {draft.provider === 'grok' ? (
+            <select
+              id="voice"
+              className={FIELD}
+              value={draft.grokVoice}
+              onChange={(event) => patch({ grokVoice: event.target.value })}
+            >
+              {GROK_VOICES.map((voice) => (
+                <option key={voice} value={voice}>
+                  {voice}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          {draft.provider === 'sarvam' ? (
+            <select
+              id="voice"
+              className={FIELD}
+              value={draft.sarvamVoice}
+              onChange={(event) => patch({ sarvamVoice: event.target.value })}
+            >
+              {SARVAM_VOICES.map((voice) => (
+                <option key={voice} value={voice}>
+                  {voice}
+                </option>
+              ))}
+            </select>
+          ) : null}
         </div>
 
         <div>
@@ -154,7 +256,7 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
             id="custom-persona"
             className={`${FIELD} h-24 resize-y`}
             value={draft.customPersona}
-            placeholder="Example: You are a calm Marathi-speaking teacher who loves cricket and explains things with village examples."
+            placeholder="Example: You are a calm Marathi-speaking teacher who loves cricket."
             onChange={(event) => patch({ customPersona: event.target.value })}
           />
         </div>
@@ -168,7 +270,7 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
           id="extra"
           className={`${FIELD} h-20 resize-y`}
           value={draft.extraInstructions}
-          placeholder="Example: always call me bhai; never talk about politics; keep answers under 20 words."
+          placeholder="Example: always call me bhai; never talk about politics."
           onChange={(event) => patch({ extraInstructions: event.target.value })}
         />
       </div>
@@ -180,7 +282,7 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
             checked={draft.allowDeviceActions}
             onChange={(event) => patch({ allowDeviceActions: event.target.checked })}
           />
-          Allow device actions
+          Allow device actions (Gemini only)
         </label>
         <label className="flex items-center gap-2">
           <input
@@ -210,7 +312,7 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
       </div>
 
       <p className="mt-3 text-[11px] leading-relaxed text-violet-200/40">
-        Saved in this browser only. Settings apply the next time you tap the mic.
+        Keys and settings are saved in this browser only. Settings apply the next time you tap the mic.
       </p>
     </div>
   );
