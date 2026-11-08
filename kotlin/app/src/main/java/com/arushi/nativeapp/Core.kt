@@ -17,6 +17,7 @@ import okhttp3.WebSocketListener
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 const val DEFAULT_PERSONA =
@@ -239,10 +240,13 @@ class AudioEngine(private val onMicChunk: (ByteArray) -> Unit) {
 /**
  * Gemini Live over a raw WebSocket.
  *
- * The websocket cannot take the API key directly any more, so we mint a
- * short-lived ephemeral token over REST and connect to the constrained v1alpha
- * endpoint with ?access_token=. The REST collection is `auth_tokens` (snake
- * case); `authTokens` returns 404.
+ * Order matters: the socket must complete `setup` before any realtimeInput is
+ * sent, otherwise the server ignores the session and the UI just sits on
+ * "Connecting". The mic is therefore started from `onReady`, never before.
+ *
+ * The websocket cannot take the API key directly, so we mint a short-lived
+ * ephemeral token over REST (`v1alpha/auth_tokens`) and connect to the
+ * constrained v1alpha endpoint with ?access_token=.
  */
 class GeminiLive(
     private val settings: AppSettings,
@@ -255,9 +259,11 @@ class GeminiLive(
     private val client = OkHttpClient.Builder()
         .pingInterval(20, TimeUnit.SECONDS)
         .readTimeout(0, TimeUnit.MILLISECONDS)
+        .connectTimeout(20, TimeUnit.SECONDS)
         .build()
 
     private var socket: WebSocket? = null
+    private val isReady = AtomicBoolean(false)
 
     private fun mintToken(): String? {
         val paths = listOf("auth_tokens", "authTokens")
@@ -312,6 +318,17 @@ class GeminiLive(
                     onClosed(reason.ifBlank { "code " + code })
                 }
             })
+
+            // If setup never completes the UI would hang on "Connecting".
+            thread(name = "arushi-watchdog") {
+                try {
+                    Thread.sleep(15000)
+                } catch (_: InterruptedException) {
+                }
+                if (!isReady.get()) {
+                    onError("Gemini did not finish setup in 15s. Check the API key and that gemini-3.8-live is enabled for it.")
+                }
+            }
         }
     }
 
@@ -352,7 +369,16 @@ class GeminiLive(
     private fun handleMessage(text: String) {
         try {
             val obj = JSONObject(text)
+
+            // Surface server-side errors instead of failing silently.
+            val error = obj.optJSONObject("error")
+            if (error != null) {
+                onError("Gemini error: " + error.optString("message").take(180))
+                return
+            }
+
             if (obj.has("setupComplete")) {
+                isReady.set(true)
                 onReady()
                 return
             }
@@ -381,11 +407,13 @@ class GeminiLive(
     }
 
     fun sendAudio(bytes: ByteArray) {
+        if (!isReady.get()) return
         val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
         socket?.send("{\"realtimeInput\":{\"audio\":{\"data\":\"$base64\",\"mimeType\":\"audio/pcm;rate=16000\"}}}")
     }
 
     fun sendText(text: String) {
+        if (!isReady.get()) return
         val content = JSONObject()
         content.put("role", "user")
         content.put("parts", JSONArray().put(JSONObject().put("text", text)))
@@ -396,6 +424,7 @@ class GeminiLive(
     }
 
     fun close() {
+        isReady.set(false)
         socket?.close(1000, "client closed")
         socket = null
     }

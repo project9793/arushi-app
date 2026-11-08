@@ -45,7 +45,15 @@ class VoiceSession(
         val client = GeminiLive(
             settings = settings,
             onAudio = { pcm -> audio.play(pcm) },
-            onReady = { onState("listening") },
+            onReady = {
+                // Mic starts only now: audio before setup kills the session.
+                if (!audio.startMic()) {
+                    onError("Microphone could not start.")
+                    onState("error")
+                } else {
+                    onState("listening")
+                }
+            },
             onTranscript = { role, text -> onTranscript(Turn(role, text)) },
             onClosed = { onState("idle") },
             onError = { message ->
@@ -55,11 +63,6 @@ class VoiceSession(
         )
         live = client
         client.connect()
-
-        if (!audio.startMic()) {
-            onError("Microphone could not start.")
-            onState("error")
-        }
     }
 
     fun sendText(text: String) {
@@ -159,7 +162,6 @@ fun AppRoot(prefs: Prefs, history: HistoryStore) {
                     onExit = { session.stop() }
                 )
 
-                // weight(1f) keeps the bottom bar on screen.
                 Column(modifier = Modifier.weight(1f)) {
                     when (tab) {
                         "home" -> HomeContent(
