@@ -55,20 +55,21 @@ export class ArushiLiveSession {
 
   async connect(): Promise<string> {
     const errors: string[] = [];
+    log.info(`Trying models: ${this.options.models.join(', ')}`);
 
     for (const model of this.options.models) {
       try {
-        log.info('Connecting to Gemini Live', { model, resumption: Boolean(this.resumptionHandle) });
+        log.info(`Connecting to Gemini Live: ${model}`);
         await this.openSession(model);
         this.activeModel = model;
         this.reconnectAttempts = 0;
-        log.info('Gemini Live session connected', { model });
+        log.info(`Gemini Live session connected: ${model}`);
         this.options.handlers.onReady(model);
         return model;
       } catch (error) {
         const detail = describeError(error);
         errors.push(`${model}: ${detail}`);
-        log.warn('Live connect failed for model', { model, error: detail });
+        log.warn(`Live connect failed for ${model}: ${detail}`);
         this.session = null;
       }
     }
@@ -88,11 +89,11 @@ export class ArushiLiveSession {
       model,
       config,
       callbacks: {
-        onopen: () => log.info('Live websocket open', { model }),
+        onopen: () => log.info(`Live websocket open: ${model}`),
         onmessage: (message: LiveServerMessage) => this.handleMessage(message),
         onerror: (event: ErrorEvent) => {
           const detail = event?.error ? describeError(event.error) : (event?.message ?? 'unknown socket error');
-          log.error('Live websocket error', detail);
+          log.error(`Live websocket error: ${detail}`);
           this.options.handlers.onError(`Connection error: ${detail}`, event);
         },
         onclose: (event: CloseEvent) => this.handleClose(event),
@@ -108,16 +109,15 @@ export class ArushiLiveSession {
 
   private handleMessage(message: LiveServerMessage): void {
     if (message.setupComplete) {
-      log.info('Live setup complete', { sessionId: message.setupComplete.sessionId });
+      log.info(`Live setup complete (session ${message.setupComplete.sessionId ?? 'unknown'})`);
     }
 
     if (message.sessionResumptionUpdate?.resumable && message.sessionResumptionUpdate.newHandle) {
       this.resumptionHandle = message.sessionResumptionUpdate.newHandle;
-      log.debug('Resumption handle updated');
     }
 
     if (message.goAway) {
-      log.warn('Server sent goAway - session will end soon', { timeLeft: message.goAway.timeLeft });
+      log.warn(`Server sent goAway - session will end soon (${message.goAway.timeLeft ?? 'unknown'})`);
     }
 
     const serverContent = message.serverContent;
@@ -150,7 +150,6 @@ export class ArushiLiveSession {
       }
 
       if (serverContent.turnComplete) {
-        log.debug('Model turn complete');
         this.options.handlers.onTurnComplete();
       }
     }
@@ -160,7 +159,7 @@ export class ArushiLiveSession {
     }
 
     if (message.toolCallCancellation?.ids?.length) {
-      log.warn('Tool call cancelled by the server', { ids: message.toolCallCancellation.ids });
+      log.warn(`Tool call cancelled by the server: ${message.toolCallCancellation.ids.join(', ')}`);
     }
   }
 
@@ -170,22 +169,14 @@ export class ArushiLiveSession {
       this.audioChunksIn += 1;
 
       if (this.audioChunksIn === 1) {
-        log.info('First audio chunk received', {
-          mimeType: mimeType ?? '(none)',
-          sampleRate: decoded.sampleRate,
-          channels: decoded.channels,
-          bytes: decoded.byteLength,
-          samples: decoded.samples.length,
-        });
+        log.info(
+          `First audio chunk received (${mimeType ?? 'no mime'}, ${decoded.sampleRate} Hz, ${decoded.channels} ch, ${decoded.byteLength} bytes)`,
+        );
       }
 
       this.options.handlers.onAudio(decoded);
     } catch (error) {
-      log.error('Failed to decode audio chunk', {
-        mimeType,
-        dataLength: data.length,
-        error: describeError(error),
-      });
+      log.error(`Failed to decode audio chunk (${mimeType ?? 'no mime'}): ${describeError(error)}`);
       this.options.handlers.onError('Audio decoding failed', error);
     }
   }
@@ -195,7 +186,7 @@ export class ArushiLiveSession {
       const responses = await this.options.handlers.onToolCall(calls);
       this.sendToolResponses(responses);
     } catch (error) {
-      log.error('Tool call handling failed', describeError(error));
+      log.error(`Tool call handling failed: ${describeError(error)}`);
       this.options.handlers.onError('Tool call failed', error);
       this.sendToolResponses(
         calls.map((call) => ({
@@ -214,9 +205,9 @@ export class ArushiLiveSession {
     }
     try {
       this.session.sendToolResponse({ functionResponses });
-      log.info('Tool response sent', { count: functionResponses.length });
+      log.info(`Tool response sent (${functionResponses.length})`);
     } catch (error) {
-      log.error('Sending tool response failed', describeError(error));
+      log.error(`Sending tool response failed: ${describeError(error)}`);
     }
   }
 
@@ -228,7 +219,7 @@ export class ArushiLiveSession {
       });
       this.audioChunksOut += 1;
     } catch (error) {
-      log.error('Sending microphone audio failed', describeError(error));
+      log.error(`Sending microphone audio failed: ${describeError(error)}`);
     }
   }
 
@@ -244,7 +235,7 @@ export class ArushiLiveSession {
       this.session.close();
       log.info('Live session closed by the app');
     } catch (error) {
-      log.warn('Live session close failed', describeError(error));
+      log.warn(`Live session close failed: ${describeError(error)}`);
     }
     this.session = null;
   }
@@ -254,16 +245,16 @@ export class ArushiLiveSession {
     const code = event?.code;
 
     if (this.intentionalClose) {
-      log.info('Live session closed', { code, reason });
+      log.info(`Live session closed (code ${code}, ${reason})`);
       this.session = null;
       this.options.handlers.onClosed({ reason, reconnecting: false });
       return;
     }
 
-    log.warn('Live session dropped unexpectedly', { code, reason });
+    log.warn(`Live session dropped unexpectedly (code ${code}, ${reason})`);
 
     if (this.reconnectAttempts >= MAX_RECONNECTS) {
-      this.options.handlers.onError('The voice session ended. Tap the button to reconnect.');
+      this.options.handlers.onError(`The voice session ended (code ${code}, ${reason}). Tap the button to reconnect.`);
       this.options.handlers.onClosed({ reason, reconnecting: false });
       return;
     }
@@ -277,10 +268,11 @@ export class ArushiLiveSession {
         const model = this.activeModel ?? this.options.models[0];
         await this.openSession(model);
         this.options.handlers.onReady(model);
-        log.info('Live session reconnected', { model, attempt: this.reconnectAttempts });
+        log.info(`Live session reconnected: ${model} (attempt ${this.reconnectAttempts})`);
       } catch (error) {
-        log.error('Reconnect failed', describeError(error));
-        this.options.handlers.onError('Lost the voice session and could not reconnect.');
+        const detail = describeError(error);
+        log.error(`Reconnect failed: ${detail}`);
+        this.options.handlers.onError(`Lost the voice session and could not reconnect: ${detail}`);
         this.options.handlers.onClosed({ reason, reconnecting: false });
       }
     })();
