@@ -10,6 +10,8 @@
   --cyan: #22d3ee;
   --cyan-deep: #0891b2;
   --blue: #2563eb;
+  --orange: #fb923c;
+  --orange-deep: #f97316;
   --text: #ffffff;
   --text-2: rgba(226, 240, 255, 0.76);
   --text-3: rgba(203, 225, 245, 0.55);
@@ -23,7 +25,6 @@ body,
 
 body {
   margin: 0;
-  /* Deep navy with a cyan bloom, like the reference chat app. */
   background:
     radial-gradient(105% 45% at 50% -10%, rgba(14, 165, 233, 0.45) 0%, transparent 62%),
     radial-gradient(75% 38% at 92% 8%, rgba(34, 211, 238, 0.18) 0%, transparent 60%),
@@ -33,6 +34,17 @@ body {
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+}
+
+/* ------------------------------------------------- two clear text colours
+   Orange for headings and anything that names a section; white for body copy.
+   The rule at the bottom of this file guarantees an orange fill never carries
+   orange text, so the two never collapse into one another. */
+
+h1,
+h2,
+.heading {
+  color: var(--orange) !important;
 }
 
 /* ---------------------------------------------------------------- cards */
@@ -88,7 +100,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: var(--orange) !important;
 }
 
 .muted {
@@ -156,7 +168,7 @@ body {
 
 .orb__glow {
   inset: -18%;
-  background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.75), rgba(37, 99, 235, 0.35) 45%, transparent 68%);
+  background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.75), rgba(249, 115, 22, 0.28) 45%, transparent 68%);
   filter: blur(26px);
   opacity: 0.95;
   z-index: 0;
@@ -175,10 +187,10 @@ body {
   background:
     radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.95), transparent 44%),
     radial-gradient(circle at 50% 55%, rgba(34, 211, 238, 0.95), rgba(12, 74, 110, 0.95) 72%),
-    conic-gradient(from 0deg, #22d3ee, #2563eb, #67e8f9, #0891b2, #22d3ee);
+    conic-gradient(from 0deg, #22d3ee, #0ea5e9, #fb923c, #0891b2, #22d3ee);
   box-shadow:
     inset 0 0 60px rgba(4, 13, 23, 0.55),
-    0 0 70px rgba(34, 211, 238, 0.6);
+    0 0 70px rgba(34, 211, 238, 0.55);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -213,7 +225,7 @@ body {
 }
 
 .waveform { position: relative; z-index: 3; display: flex; align-items: center; gap: 5px; height: 46px; }
-.waveform span { width: 5px; border-radius: 9999px; background: #ffffff; height: 18%; animation: wave 1s ease-in-out infinite; }
+.waveform span { width: 5px; height: 18%; border-radius: 9999px; background: #ffffff; animation: wave 1s ease-in-out infinite; }
 .waveform span:nth-child(2) { animation-delay: 0.12s; }
 .waveform span:nth-child(3) { animation-delay: 0.24s; }
 .waveform span:nth-child(4) { animation-delay: 0.36s; }
@@ -277,3 +289,38 @@ body {
 
 .bg-\[\#c084fc\] { background-color: var(--cyan) !important; }
 .bg-\[\#7c3aed\] { background-color: var(--cyan-deep) !important; }
+
+/* ------------------------------------- final guard: no text-on-same-colour
+   Anything sitting on a coloured fill (orange, cyan, blue) keeps white or
+   near-black text, never orange. This is what stops two elements of the same
+   colour from swallowing each other's labels. */
+
+.bg-orange-400,
+.bg-orange-500,
+.bg-orange-600,
+.btn-orange,
+.bubble-out,
+.bg-\[\#f97316\],
+.bg-\[\#fb923c\] {
+  color: #ffffff !important;
+}
+
+.bg-orange-400 *,
+.bg-orange-500 *,
+.bg-orange-600 *,
+.btn-orange *,
+.bubble-out * {
+  color: #ffffff !important;
+}
+
+.btn-primary,
+.btn-primary * {
+  color: #04212b !important;
+}
+
+/* Secondary copy stays white so the orange headings always stand apart. */
+p,
+li,
+span.body {
+  color: inherit;
+}
