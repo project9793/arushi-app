@@ -12,13 +12,13 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
     <div className="flex h-full flex-col px-4 pb-3 pt-3">
       <header className="flex shrink-0 items-center justify-between">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight text-white">Chat</h1>
-          <p className="truncate text-[11px] text-white/55">{snapshot.model ?? 'not connected'}</p>
+          <h1 className="text-lg font-bold tracking-tight text-[#fff4e2]">Chat</h1>
+          <p className="truncate text-[11px] text-[#ffd9a8]/70">{snapshot.model ?? 'not connected'}</p>
         </div>
         <button
           type="button"
           onClick={onClear}
-          className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white/85"
+          className="shrink-0 rounded-full border border-[#f3bd57]/45 bg-[#f3bd57]/15 px-3 py-1.5 text-[11px] font-semibold text-[#ffe6ab]"
         >
           Clear
         </button>
@@ -26,7 +26,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
 
       <div className="card mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {snapshot.transcript.length === 0 ? (
-          <p className="mt-10 px-4 text-center text-xs text-white/55">
+          <p className="mt-10 px-4 text-center text-xs text-[#ffe9d2]/60">
             Nothing here yet. Tap the mic on Home, or type below.
           </p>
         ) : (
@@ -34,10 +34,12 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
             <div
               key={line.id}
               className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                line.role === 'user' ? 'ml-auto bg-violet-500/35 text-white' : 'mr-auto bg-white/12 text-white/90'
+                line.role === 'user'
+                  ? 'ml-auto border border-[#f3bd57]/40 bg-[#f3bd57]/20 text-[#fff8ee]'
+                  : 'mr-auto border border-[#ffd9a8]/25 bg-[#ffd9a8]/12 text-[#fff4e2]'
               }`}
             >
-              <span className="mr-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/55">
+              <span className="mr-1.5 text-[10px] font-bold uppercase tracking-wide text-[#ffe6ab]/75">
                 {line.role === 'user' ? 'You' : 'Assistant'}
               </span>
               {line.text}
@@ -60,14 +62,14 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
       >
         <input
           name="message"
-          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-sm text-[#fff8ee] placeholder:text-[#ffe9d2]/45 focus:outline-none"
           placeholder="Type a message…"
           autoComplete="off"
         />
         <button
           type="submit"
           aria-label="Send"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500 text-white transition hover:bg-violet-400"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-[#2a0f22] transition active:scale-95"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M3 11.5 21 3l-8.5 18-2.2-7.3z" />

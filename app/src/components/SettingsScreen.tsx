@@ -17,8 +17,8 @@ export function SettingsScreen({ snapshot, onSpeakerTest, onClearTranscript }: S
   return (
     <div className="flex min-h-full flex-col px-4 pb-6 pt-3">
       <header>
-        <h1 className="text-lg font-semibold tracking-tight text-white">Settings</h1>
-        <p className="text-[11px] text-white/60">everything is stored on this device only</p>
+        <h1 className="text-lg font-bold tracking-tight text-[#fff4e2]">Settings</h1>
+        <p className="text-[11px] text-[#ffd9a8]/70">everything is stored on this device only</p>
       </header>
 
       <div className="card mt-4 p-4">
@@ -39,11 +39,11 @@ export function SettingsScreen({ snapshot, onSpeakerTest, onClearTranscript }: S
               setAvatarUrl(avatar);
               setSavedAvatar(true);
             }}
-            className="rounded-xl bg-violet-500 px-4 py-2 text-xs font-semibold text-white"
+            className="rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 px-4 py-2 text-xs font-bold text-[#2a0f22]"
           >
             Save avatar
           </button>
-          {savedAvatar ? <span className="text-[11px] text-emerald-300">saved</span> : null}
+          {savedAvatar ? <span className="text-[11px] font-semibold text-emerald-300">saved</span> : null}
         </div>
       </div>
 
