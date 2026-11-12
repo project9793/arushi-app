@@ -36,11 +36,6 @@ body {
   overscroll-behavior: none;
 }
 
-/* ------------------------------------------------- two clear text colours
-   Orange for headings and anything that names a section; white for body copy.
-   The rule at the bottom of this file guarantees an orange fill never carries
-   orange text, so the two never collapse into one another. */
-
 h1,
 h2,
 .heading {
@@ -147,7 +142,9 @@ h2,
   box-shadow: 0 12px 26px -14px rgba(34, 211, 238, 0.9);
 }
 
-/* ---------------------------------------------------------------- orb */
+/* ---------------------------------------------------------------- orb
+   The iridescent sphere from the earlier build, restored on request: white
+   highlight top-left, pink/magenta left, violet bottom, aqua right. */
 
 .orb {
   position: relative;
@@ -167,16 +164,16 @@ h2,
 }
 
 .orb__glow {
-  inset: -18%;
-  background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.75), rgba(249, 115, 22, 0.28) 45%, transparent 68%);
-  filter: blur(26px);
+  inset: -16%;
+  background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.55), rgba(34, 211, 238, 0.28) 45%, transparent 68%);
+  filter: blur(28px);
   opacity: 0.95;
   z-index: 0;
 }
 
 .orb__ring {
   inset: 0;
-  border: 1px solid rgba(165, 243, 252, 0.35);
+  border: 1px solid rgba(196, 181, 253, 0.32);
   opacity: 0;
   z-index: 1;
 }
@@ -185,12 +182,11 @@ h2,
   inset: 8%;
   z-index: 2;
   background:
-    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.95), transparent 44%),
-    radial-gradient(circle at 50% 55%, rgba(34, 211, 238, 0.95), rgba(12, 74, 110, 0.95) 72%),
-    conic-gradient(from 0deg, #22d3ee, #0ea5e9, #fb923c, #0891b2, #22d3ee);
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.92), transparent 44%),
+    conic-gradient(from 140deg, #a855f7, #f472b6, #5eead4, #c4b5fd, #a855f7);
   box-shadow:
-    inset 0 0 60px rgba(4, 13, 23, 0.55),
-    0 0 70px rgba(34, 211, 238, 0.55);
+    inset 0 0 60px rgba(10, 6, 22, 0.35),
+    0 30px 80px -30px rgba(168, 85, 247, 0.9);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -198,7 +194,7 @@ h2,
 }
 
 .orb--idle .orb__core { animation: orb-breathe 6s ease-in-out infinite; }
-.orb--connecting .orb__core { animation: orb-spin 3.2s linear infinite; filter: saturate(0.7) brightness(0.85); }
+.orb--connecting .orb__core { animation: orb-spin 3.2s linear infinite; filter: saturate(0.75) brightness(0.9); }
 .orb--connecting .orb__ring { animation: orb-ring-pulse 1.8s ease-out infinite; opacity: 1; }
 .orb--listening .orb__core {
   transform: scale(calc(1 + var(--level) * 0.55));
@@ -290,10 +286,7 @@ h2,
 .bg-\[\#c084fc\] { background-color: var(--cyan) !important; }
 .bg-\[\#7c3aed\] { background-color: var(--cyan-deep) !important; }
 
-/* ------------------------------------- final guard: no text-on-same-colour
-   Anything sitting on a coloured fill (orange, cyan, blue) keeps white or
-   near-black text, never orange. This is what stops two elements of the same
-   colour from swallowing each other's labels. */
+/* ------------------------------------- guard: no text on a same-colour fill */
 
 .bg-orange-400,
 .bg-orange-500,
@@ -316,11 +309,4 @@ h2,
 .btn-primary,
 .btn-primary * {
   color: #04212b !important;
-}
-
-/* Secondary copy stays white so the orange headings always stand apart. */
-p,
-li,
-span.body {
-  color: inherit;
 }
