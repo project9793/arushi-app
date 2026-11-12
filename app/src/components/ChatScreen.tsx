@@ -10,15 +10,15 @@ interface ChatScreenProps {
 export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
   return (
     <div className="flex h-full flex-col px-4 pb-3 pt-3">
-      <header className="flex shrink-0 items-center justify-between">
+      <header className="flex shrink-0 items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-lg font-bold tracking-tight text-[#1f1235]">Chat</h1>
-          <p className="truncate text-[11px] text-[#9385ae]">{snapshot.model ?? 'not connected'}</p>
+          <h1 className="text-lg font-bold tracking-tight">Chat</h1>
+          <p className="truncate text-[11px] text-white/55">{snapshot.model ?? 'not connected'}</p>
         </div>
         <button
           type="button"
           onClick={onClear}
-          className="shrink-0 rounded-full border border-[#e6dcf8] bg-white px-3 py-1.5 text-[11px] font-semibold text-[#7c3aed]"
+          className="shrink-0 rounded-full border border-[#22d3ee]/45 bg-[#22d3ee]/15 px-3 py-1.5 text-[11px] font-bold text-[#a5f3fc] transition active:scale-95"
         >
           Clear
         </button>
@@ -26,7 +26,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
 
       <div className="card mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {snapshot.transcript.length === 0 ? (
-          <p className="mt-10 px-4 text-center text-xs text-[#9385ae]">
+          <p className="mt-10 px-4 text-center text-xs text-white/55">
             Nothing here yet. Tap the mic on Home, or type below.
           </p>
         ) : (
@@ -39,7 +39,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
             >
               <span
                 className="mr-1.5 text-[10px] font-bold uppercase tracking-wide"
-                style={{ color: line.role === 'user' ? 'rgba(255,255,255,0.78)' : '#9385ae' }}
+                style={{ color: line.role === 'user' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.55)' }}
               >
                 {line.role === 'user' ? 'You' : 'Assistant'}
               </span>
@@ -63,7 +63,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
       >
         <input
           name="message"
-          className="min-w-0 flex-1 bg-transparent text-sm text-[#1f1235] placeholder:text-[#9385ae] focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none"
           placeholder="Type a message…"
           autoComplete="off"
         />
