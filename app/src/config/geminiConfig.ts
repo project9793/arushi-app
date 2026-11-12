@@ -16,24 +16,28 @@ export const FALLBACK_MODELS = [
   'gemini-2.5-flash-native-audio-latest',
 ];
 
+/** The model the user typed in Settings wins, then the env var, then defaults. */
 export function getModelCandidates(): string[] {
+  const settings = loadSettings();
+  const typed = settings.modelOverride?.trim();
   const fromEnv = import.meta.env.VITE_GEMINI_MODEL?.trim();
-  const candidates = fromEnv ? [fromEnv, ...FALLBACK_MODELS] : FALLBACK_MODELS;
-  return [...new Set(candidates.filter(Boolean))];
+  const preferred = [typed, fromEnv, DEFAULT_MODEL].filter((value): value is string => Boolean(value));
+  return [...new Set([...preferred, ...FALLBACK_MODELS])];
 }
 
-/** Kept for the diagnostics snapshot; the live session uses the configured voice. */
+/** Kept for the diagnostics panel; the real voice comes from settings. */
 export const VOICE_NAME = 'Aoede';
 
-/**
- * Minimal setup payload. Only what the assistant needs: audio out, the
- * user-configured persona as the system instruction, the chosen voice, the
- * tool declarations and voice-activity settings. Optional extras such as
- * context-window compression were removed because a model that rejects one
- * field drops the socket before setup completes (close code 1006, no reason).
- */
+export const APP_NAME = 'Arushi';
+
 export function buildLiveConfig(): LiveConnectConfig {
   const settings = loadSettings();
+
+  // Google Search grounding: without it the model answers from training data and
+  // presents two-year-old news as if it were current.
+  const tools: Array<Record<string, unknown>> = [];
+  if (settings.webSearch) tools.push({ googleSearch: {} });
+  if (settings.allowDeviceActions) tools.push({ functionDeclarations: TOOL_DECLARATIONS });
 
   return {
     responseModalities: [Modality.AUDIO],
@@ -41,18 +45,15 @@ export function buildLiveConfig(): LiveConnectConfig {
     speechConfig: {
       voiceConfig: { prebuiltVoiceConfig: { voiceName: settings.voice } },
     },
-    tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
+    tools: tools as LiveConnectConfig['tools'],
     realtimeInputConfig: {
       automaticActivityDetection: {
-        disabled: false,
         startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_HIGH,
         endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
         prefixPaddingMs: 40,
-        silenceDurationMs: 500,
+        silenceDurationMs: 550,
       },
       activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
     },
   };
 }
-
-export const APP_NAME = 'Arushi';

@@ -6,11 +6,14 @@ interface ChatScreenProps {
   onClear: () => void;
 }
 
-/** Full conversation view. Voice still drives it; this is the readable log. */
+/**
+ * Chat stays inside a fixed-height box with its own scroll, so a long
+ * conversation never stretches the page or pushes the bottom bar away.
+ */
 export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
   return (
-    <div className="flex min-h-full flex-col px-4 pb-32 pt-3">
-      <header className="flex items-center justify-between">
+    <div className="flex h-[calc(100dvh-8.5rem)] flex-col px-4 pt-3">
+      <header className="flex shrink-0 items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">Chat</h1>
           <p className="text-[11px] text-violet-200/45">{snapshot.model ?? 'not connected'}</p>
@@ -24,10 +27,10 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
         </button>
       </header>
 
-      <div className="mt-4 flex-1 space-y-2 overflow-y-auto">
+      <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto rounded-2xl border border-white/10 bg-black/20 p-3">
         {snapshot.transcript.length === 0 ? (
-          <p className="mt-10 text-center text-xs text-violet-200/35">
-            Nothing here yet. Tap the mic and start talking.
+          <p className="mt-8 text-center text-xs text-violet-200/35">
+            Nothing here yet. Tap the mic on Home, or type below.
           </p>
         ) : (
           snapshot.transcript.map((line) => (
@@ -49,7 +52,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
       </div>
 
       <form
-        className="mt-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2"
+        className="mt-3 flex shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2"
         onSubmit={(event) => {
           event.preventDefault();
           const input = new FormData(event.currentTarget).get('message');
