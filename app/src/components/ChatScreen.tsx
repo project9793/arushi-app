@@ -6,13 +6,10 @@ interface ChatScreenProps {
   onClear: () => void;
 }
 
-/**
- * Chat lives in a fixed-height card with its own scroll. The height subtracts
- * the top header and the bottom navigation so nothing is ever hidden behind it.
- */
+/** Chat fills the space it is given; only the message list scrolls. */
 export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
   return (
-    <div className="flex h-[calc(100dvh-12rem)] flex-col px-4 pt-3">
+    <div className="flex h-full flex-col px-4 pb-3 pt-3">
       <header className="flex shrink-0 items-center justify-between">
         <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-tight text-white">Chat</h1>

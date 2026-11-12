@@ -14,11 +14,11 @@ const TABS: Array<{ id: TabId; label: string; icon: string }> = [
   { id: 'settings', label: 'Settings', icon: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z' },
 ];
 
-/** White pill navigation with a floating centre button, as in the reference. */
+/** White pill navigation, in the flow at the bottom of the screen. */
 export function BottomNav({ active, onSelect, onCentrePress, listening }: BottomNavProps) {
   return (
-    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-3">
-      <div className="pointer-events-auto relative mx-auto flex max-w-md items-end justify-between rounded-[28px] bg-[#f6f2ec] px-3 pb-2 pt-2 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.65)]">
+    <nav className="shrink-0 px-3 pb-2 pt-1">
+      <div className="relative mx-auto flex max-w-md items-end justify-between rounded-[26px] bg-[#f6f2ec] px-3 py-2 shadow-[0_14px_30px_-14px_rgba(0,0,0,0.8)]">
         <button
           type="button"
           onClick={() => onSelect('home')}
@@ -28,7 +28,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
             <path d={TABS[0].icon} />
           </svg>
-          <span className="text-[11px] font-medium">Home</span>
+          <span className="text-[10px] font-medium">Home</span>
         </button>
 
         <button
@@ -40,10 +40,10 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
             <path d={TABS[1].icon} />
           </svg>
-          <span className="text-[11px] font-medium">Chat</span>
+          <span className="text-[10px] font-medium">Chat</span>
         </button>
 
-        <div className="w-16" aria-hidden="true" />
+        <div className="w-14" aria-hidden="true" />
 
         <button
           type="button"
@@ -54,7 +54,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d={TABS[2].icon} />
           </svg>
-          <span className="text-[11px] font-medium">History</span>
+          <span className="text-[10px] font-medium">History</span>
         </button>
 
         <button
@@ -66,23 +66,23 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d={TABS[3].icon} />
           </svg>
-          <span className="text-[11px] font-medium">Settings</span>
+          <span className="text-[10px] font-medium">Settings</span>
         </button>
 
         <button
           type="button"
           onClick={onCentrePress}
           aria-label={listening ? 'Stop listening' : 'Start listening'}
-          className={`absolute left-1/2 top-0 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] shadow-[0_10px_30px_-8px_rgba(249,115,22,0.9)] transition ${
+          className={`absolute left-1/2 top-0 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] shadow-[0_10px_26px_-8px_rgba(249,115,22,0.9)] transition ${
             listening ? 'border-rose-300 bg-gradient-to-br from-rose-500 to-fuchsia-600' : 'border-orange-200 bg-gradient-to-br from-amber-500 to-orange-600'
           }`}
         >
           {listening ? (
-            <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white">
               <rect x="6" y="6" width="12" height="12" rx="2.5" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white">
+            <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white">
               <path d="M12 3a1 1 0 0 1 1 1v7a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Z" />
               <path d="M7.05 6.34a1 1 0 0 1-.27 1.39 6 6 0 1 0 10.44 0 1 1 0 1 1 1.12-1.66 8 8 0 1 1-13.92 0 1 1 0 0 1 1.63.27Z" />
             </svg>

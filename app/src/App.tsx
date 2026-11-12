@@ -62,8 +62,10 @@ export default function App() {
 
   if (view === 'talk') {
     return (
-      <div className="min-h-full">
-        <TalkScreen snapshot={snapshot} onStop={closeTalk} />
+      <div className="flex h-[100dvh] flex-col overflow-hidden">
+        <main className="min-h-0 flex-1 overflow-y-auto">
+          <TalkScreen snapshot={snapshot} onStop={closeTalk} />
+        </main>
       </div>
     );
   }
@@ -71,42 +73,46 @@ export default function App() {
   const showError = snapshot.error && snapshot.error !== dismissedError && tab !== 'settings';
 
   return (
-    <div className="min-h-full pb-32">
-      {showError ? (
-        <div className="px-4 pt-3">
-          <ErrorBanner message={snapshot.error ?? ''} onDismiss={() => setDismissedError(snapshot.error)} />
-        </div>
-      ) : null}
+    <div className="flex h-[100dvh] flex-col overflow-hidden">
+      {/* Only this area scrolls, and only when it actually has more content than
+          fits. The nav sits below it in the flow, so nothing is ever covered. */}
+      <main className="min-h-0 flex-1 overflow-y-auto">
+        {showError ? (
+          <div className="px-4 pt-3">
+            <ErrorBanner message={snapshot.error ?? ''} onDismiss={() => setDismissedError(snapshot.error)} />
+          </div>
+        ) : null}
 
-      {tab === 'home' ? (
-        <HomeScreen
-          snapshot={snapshot}
-          avatarUrl={avatarUrl}
-          onMicPress={openTalk}
-          onSendText={(text) => arushiController.sendText(text)}
-          onOpenChat={() => go('chat')}
-        />
-      ) : null}
+        {tab === 'home' ? (
+          <HomeScreen
+            snapshot={snapshot}
+            avatarUrl={avatarUrl}
+            onMicPress={openTalk}
+            onSendText={(text) => arushiController.sendText(text)}
+            onOpenChat={() => go('chat')}
+          />
+        ) : null}
 
-      {tab === 'chat' ? (
-        <ChatScreen
-          snapshot={snapshot}
-          onSendText={(text) => arushiController.sendText(text)}
-          onClear={clearTranscript}
-        />
-      ) : null}
+        {tab === 'chat' ? (
+          <ChatScreen
+            snapshot={snapshot}
+            onSendText={(text) => arushiController.sendText(text)}
+            onClear={clearTranscript}
+          />
+        ) : null}
 
-      {tab === 'history' ? <HistoryScreen /> : null}
+        {tab === 'history' ? <HistoryScreen /> : null}
 
-      {tab === 'settings' ? (
-        <SettingsScreen
-          snapshot={snapshot}
-          onSpeakerTest={() => {
-            void runSpeakerTest();
-          }}
-          onClearTranscript={clearTranscript}
-        />
-      ) : null}
+        {tab === 'settings' ? (
+          <SettingsScreen
+            snapshot={snapshot}
+            onSpeakerTest={() => {
+              void runSpeakerTest();
+            }}
+            onClearTranscript={clearTranscript}
+          />
+        ) : null}
+      </main>
 
       <BottomNav active={tab} onSelect={go} listening={snapshot.state === 'listening'} onCentrePress={openTalk} />
     </div>
