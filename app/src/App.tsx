@@ -20,6 +20,10 @@ export default function App() {
   const [dismissedError, setDismissedError] = useState<string | null>(null);
   const [avatarUrl, setAvatar] = useState<string>(() => getAvatarUrl());
   const previousState = useRef(snapshot.state);
+  const pendingSend = useRef<string | null>(null);
+
+  const live =
+    snapshot.state === 'listening' || snapshot.state === 'speaking' || snapshot.state === 'connecting';
 
   const go = (next: TabId) => {
     setView('tabs');
@@ -29,8 +33,6 @@ export default function App() {
 
   const openTalk = () => {
     setView('talk');
-    const live =
-      snapshot.state === 'listening' || snapshot.state === 'speaking' || snapshot.state === 'connecting';
     if (!live) void toggle();
   };
 
@@ -38,6 +40,39 @@ export default function App() {
     stop();
     setView('tabs');
   };
+
+  /** Mic from inside Chat: start listening but stay on the chat screen. */
+  const listenHere = () => {
+    if (live) stop();
+    else void toggle();
+  };
+
+  /**
+   * A typed message has to go through the live session. If it is not running
+   * yet, start it and keep the text until the session is ready, instead of
+   * dropping it silently — that is why typing used to look broken.
+   */
+  const sendText = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    if (live) {
+      arushiController.sendText(trimmed);
+      return;
+    }
+
+    pendingSend.current = trimmed;
+    void toggle();
+  };
+
+  useEffect(() => {
+    if (snapshot.state === 'listening' && pendingSend.current) {
+      const text = pendingSend.current;
+      pendingSend.current = null;
+      arushiController.sendText(text);
+    }
+    if (snapshot.state === 'error') pendingSend.current = null;
+  }, [snapshot.state]);
 
   useEffect(() => {
     setAvatar(getAvatarUrl());
@@ -74,8 +109,6 @@ export default function App() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden">
-      {/* pb-10 keeps the last field clear of the floating mic button, so no
-          control ever sits underneath it. */}
       <main className="min-h-0 flex-1 overflow-y-auto pb-10">
         {showError ? (
           <div className="px-4 pt-3">
@@ -88,7 +121,7 @@ export default function App() {
             snapshot={snapshot}
             avatarUrl={avatarUrl}
             onMicPress={openTalk}
-            onSendText={(text) => arushiController.sendText(text)}
+            onSendText={sendText}
             onOpenChat={() => go('chat')}
           />
         ) : null}
@@ -96,8 +129,10 @@ export default function App() {
         {tab === 'chat' ? (
           <ChatScreen
             snapshot={snapshot}
-            onSendText={(text) => arushiController.sendText(text)}
+            onSendText={sendText}
             onClear={clearTranscript}
+            onMic={listenHere}
+            listening={snapshot.state === 'listening' || snapshot.state === 'speaking'}
           />
         ) : null}
 
@@ -114,7 +149,7 @@ export default function App() {
         ) : null}
       </main>
 
-      <BottomNav active={tab} onSelect={go} listening={snapshot.state === 'listening'} onCentrePress={openTalk} />
+      <BottomNav active={tab} onSelect={go} listening={live} onCentrePress={openTalk} />
     </div>
   );
 }
