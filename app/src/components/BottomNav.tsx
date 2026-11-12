@@ -14,13 +14,16 @@ const TABS: Array<{ id: TabId; label: string; icon: string }> = [
   { id: 'settings', label: 'Settings', icon: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z' },
 ];
 
-/** Deep navy bar with a cyan active tab and a floating cyan mic, as in the reference. */
+/** Deep navy bar with a cyan active tab and a floating cyan mic. */
 export function BottomNav({ active, onSelect, onCentrePress, listening }: BottomNavProps) {
   const activeClass = 'text-[#22d3ee]';
   const idleClass = 'text-[#8fb0c9]';
 
   return (
-    <nav className="shrink-0 px-3 pb-2 pt-1">
+    <nav
+      className="shrink-0 px-3 pt-1"
+      style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}
+    >
       <div className="relative mx-auto flex max-w-md items-end justify-between rounded-[26px] border border-[#22d3ee]/25 bg-[#0d2136] px-3 py-2 shadow-[0_16px_36px_-18px_rgba(0,0,0,0.95)]">
         <button
           type="button"
@@ -31,7 +34,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
             <path d={TABS[0].icon} />
           </svg>
-          <span className="text-[10px] font-semibold">Home</span>
+          <span className="text-[10px] font-bold">Home</span>
         </button>
 
         <button
@@ -43,7 +46,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
             <path d={TABS[1].icon} />
           </svg>
-          <span className="text-[10px] font-semibold">Chat</span>
+          <span className="text-[10px] font-bold">Chat</span>
         </button>
 
         <div className="w-14" aria-hidden="true" />
@@ -57,7 +60,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d={TABS[2].icon} />
           </svg>
-          <span className="text-[10px] font-semibold">History</span>
+          <span className="text-[10px] font-bold">History</span>
         </button>
 
         <button
@@ -69,7 +72,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d={TABS[3].icon} />
           </svg>
-          <span className="text-[10px] font-semibold">Settings</span>
+          <span className="text-[10px] font-bold">Settings</span>
         </button>
 
         <button
