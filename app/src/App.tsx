@@ -27,10 +27,10 @@ export default function App() {
     setLastTab(next);
   };
 
-  /** Home mic / Tap to Talk: open the conversation screen and start listening. */
   const openTalk = () => {
     setView('talk');
-    const live = snapshot.state === 'listening' || snapshot.state === 'speaking' || snapshot.state === 'connecting';
+    const live =
+      snapshot.state === 'listening' || snapshot.state === 'speaking' || snapshot.state === 'connecting';
     if (!live) void toggle();
   };
 
@@ -43,7 +43,6 @@ export default function App() {
     setAvatar(getAvatarUrl());
   }, [tab]);
 
-  // Save the finished conversation to History when a live session ends.
   useEffect(() => {
     const wasLive = previousState.current === 'listening' || previousState.current === 'speaking';
     if (wasLive && snapshot.state === 'idle' && snapshot.transcript.length > 0) {
@@ -72,7 +71,7 @@ export default function App() {
   const showError = snapshot.error && snapshot.error !== dismissedError && tab !== 'settings';
 
   return (
-    <div className="min-h-full pb-24">
+    <div className="min-h-full pb-32">
       {showError ? (
         <div className="px-4 pt-3">
           <ErrorBanner message={snapshot.error ?? ''} onDismiss={() => setDismissedError(snapshot.error)} />
