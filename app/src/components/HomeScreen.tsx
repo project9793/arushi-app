@@ -28,19 +28,19 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
   return (
     <div className="flex min-h-full flex-col items-center px-4 pb-4 pt-3">
       <div className="card w-full max-w-md overflow-hidden p-4">
-        <div className="relative flex h-[210px] w-full items-center justify-center overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_50%_40%,#ede7fb,#f7f4fe_70%)]">
+        <div className="relative flex h-[215px] w-full items-center justify-center overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_50%_45%,rgba(124,58,237,0.45),rgba(10,6,20,0.9)_72%)]">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top" />
+            <img src={avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-90" />
           ) : null}
 
           <button
             type="button"
             onClick={onMicPress}
             aria-label={busy ? 'Stop listening' : 'Start talking'}
-            className={`relative z-10 grid h-[124px] w-[124px] place-items-center rounded-full transition ${
+            className={`relative z-10 grid h-[128px] w-[128px] place-items-center rounded-full border-2 transition ${
               busy
-                ? 'bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_18px_40px_-16px_rgba(219,39,119,0.85)]'
-                : 'bg-gradient-to-br from-violet-500 to-violet-700 shadow-[0_18px_40px_-16px_rgba(109,40,217,0.8)]'
+                ? 'border-rose-300/70 bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_0_60px_rgba(244,63,94,0.8)]'
+                : 'border-[#c084fc]/70 bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-[0_0_60px_rgba(139,92,246,0.85)]'
             }`}
           >
             {snapshot.state === 'speaking' ? (
@@ -59,8 +59,8 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
           </button>
         </div>
 
-        <h2 className="mt-3 text-center text-[26px] font-bold tracking-tight text-[#1f1235]">{STATUS_LABEL[snapshot.state]}</h2>
-        <p className="mt-1 text-center text-[13px] leading-relaxed text-[#6b5b8a]">
+        <h2 className="mt-4 text-center text-[26px] font-bold tracking-tight text-white">{STATUS_LABEL[snapshot.state]}</h2>
+        <p className="mt-1 text-center text-[13px] leading-relaxed text-white/70">
           {snapshot.state === 'listening'
             ? 'Speak in Hindi, English or Hinglish'
             : snapshot.state === 'error'
@@ -69,18 +69,18 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
         </p>
 
         {!avatarUrl ? (
-          <p className="mt-2 text-center text-[11px] text-[#9385ae]">
+          <p className="mt-2 text-center text-[11px] text-white/45">
             Add an avatar image in Settings to show a portrait here.
           </p>
         ) : null}
 
         <div className="mt-3 flex items-center justify-center gap-1.5">
-          <span className="h-3 w-1 rounded bg-[#8b5cf6]" />
-          <span className="h-2 w-1 rounded bg-[#c4b5fd]" />
-          <span className="h-3 w-1 rounded bg-[#8b5cf6]" />
-          <span className="h-2 w-1 rounded bg-[#c4b5fd]" />
-          <span className="h-3 w-1 rounded bg-[#8b5cf6]" />
-          <span className="h-2 w-1 rounded bg-[#c4b5fd]" />
+          <span className="h-3 w-1 rounded bg-[#c084fc]" />
+          <span className="h-2 w-1 rounded bg-[#7c3aed]" />
+          <span className="h-3 w-1 rounded bg-[#c084fc]" />
+          <span className="h-2 w-1 rounded bg-[#7c3aed]" />
+          <span className="h-3 w-1 rounded bg-[#c084fc]" />
+          <span className="h-2 w-1 rounded bg-[#7c3aed]" />
         </div>
       </div>
 
@@ -96,21 +96,21 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
           }
         }}
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#ede7fb] text-[#7c3aed]">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#8b5cf6]/25 text-[#d8b4fe]">
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M12 2l1.9 5.6L19.5 9l-4.3 3.6L16.6 19 12 15.8 7.4 19l1.4-6.4L4.5 9l5.6-1.4z" />
           </svg>
         </span>
         <input
           name="ask"
-          className="min-w-0 flex-1 bg-transparent text-sm text-[#1f1235] placeholder:text-[#9385ae] focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none"
           placeholder="Ask me anything…"
           autoComplete="off"
         />
         <button
           type="submit"
           aria-label="Send"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-700 text-white transition active:scale-95"
+          className="btn-primary grid h-9 w-9 shrink-0 place-items-center rounded-xl transition active:scale-95"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M3 11.5 21 3l-8.5 18-2.2-7.3z" />
@@ -126,13 +126,13 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
             onClick={onOpenChat}
             className="card flex flex-col items-center gap-1.5 px-2 py-3 text-center transition active:scale-[0.98]"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#ede7fb] text-[#7c3aed]">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#8b5cf6]/25 text-[#d8b4fe]">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9">
                 <path d={action.icon} />
               </svg>
             </span>
-            <span className="text-xs font-bold text-[#1f1235]">{action.title}</span>
-            <span className="text-[10px] leading-tight text-[#9385ae]">{action.subtitle}</span>
+            <span className="text-xs font-bold text-white">{action.title}</span>
+            <span className="text-[10px] leading-tight text-white/50">{action.subtitle}</span>
           </button>
         ))}
       </div>
