@@ -136,14 +136,12 @@ h2,
   background: linear-gradient(135deg, #0ea5e9, #2563eb);
   color: #ffffff;
   border: 1px solid rgba(56, 189, 248, 0.5);
-  font-weight: 600;
 }
 
 .bubble-in {
   background: rgba(255, 255, 255, 0.075);
   color: #ffffff;
   border: 1px solid var(--line);
-  font-weight: 600;
 }
 
 .btn-primary {
@@ -153,9 +151,7 @@ h2,
   font-weight: 800;
 }
 
-/* ---------------------------------------------------------------- orb
-   The iridescent sphere the user preferred: white highlight top-left, pink
-   left, violet bottom, aqua right. */
+/* ---------------------------------------------------------------- orb */
 
 .orb {
   position: relative;
@@ -322,10 +318,7 @@ h2,
   color: #04212b !important;
 }
 
-/* -------------------------------------------------- bold type, everywhere
-   The small 10-11px labels were unreadable on a phone, so every step up the
-   type scale is bolder and slightly larger, and nothing is allowed to spill
-   past the screen edge. */
+/* -------------------------------------------------- bold type, everywhere */
 
 button,
 select,
@@ -343,7 +336,6 @@ label {
 .text-\[11px\] { font-size: 13px !important; font-weight: 600 !important; }
 .text-\[13px\] { font-size: 14.5px !important; font-weight: 600 !important; }
 
-/* Nothing overflows the screen: long words wrap, wide selects shrink. */
 * {
   min-width: 0;
 }
@@ -357,4 +349,35 @@ li {
 img,
 svg {
   max-width: 100%;
+}
+
+/* ------------------------------------ extra bold in Chat and History
+   Both screens were still hard to read at a glance, so message text, the
+   You/Assistant tags and the history previews are pushed to 800. */
+
+.bubble-out,
+.bubble-in {
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0.005em;
+}
+
+.bubble-out *,
+.bubble-in * {
+  font-weight: 800 !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.06em;
+}
+
+/* History list: title line, preview and the provider badge. */
+.card button p,
+.card button span {
+  font-weight: 700 !important;
+}
+
+.card button p {
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+  color: #ffffff !important;
 }
