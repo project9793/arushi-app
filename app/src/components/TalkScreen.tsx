@@ -14,7 +14,7 @@ const LABEL: Record<ArushiSnapshot['state'], { title: string; hint: string }> = 
   error: { title: 'Something went wrong', hint: 'The message below says what happened.' },
 };
 
-/** Live conversation, inside a white card with a clear way back home. */
+/** Live conversation, inside a card with a clear way back home. */
 export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
   const { title, hint } = LABEL[snapshot.state];
   const recent = snapshot.transcript.slice(-6);
@@ -22,35 +22,41 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
   return (
     <div className="px-4 pb-4 pt-3">
       <div className="mx-auto max-w-md">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <button type="button" onClick={onStop} className="chip-gold">
-            ← Back to Home
+        {/* Back first, model second: the long model name truncates, never clips. */}
+        <div className="mb-3 flex items-center gap-2">
+          <button type="button" onClick={onStop} className="chip-gold shrink-0">
+            ← Home
           </button>
-          <span className="chip">{snapshot.model ?? 'voice'}</span>
+          <span
+            className="min-w-0 flex-1 truncate rounded-full border border-[#a855f7]/30 bg-[#8b5cf6]/12 px-3 py-2 text-center text-[11px] font-medium text-white/70"
+            title={snapshot.model ?? 'voice'}
+          >
+            {snapshot.model ?? 'voice'}
+          </span>
         </div>
 
         <div className="card flex flex-col items-center px-4 py-6">
           <ArushiOrb state={snapshot.state} micLevel={snapshot.micLevel} />
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#e6dcf8] bg-[#f3eefe] px-4 py-1.5 text-sm font-bold text-[#6d28d9]">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#a855f7]/35 bg-[#8b5cf6]/15 px-4 py-1.5 text-sm font-bold text-[#e9d5ff]">
             <span
               className={`h-2 w-2 rounded-full ${
                 snapshot.state === 'listening'
-                  ? 'bg-emerald-500'
+                  ? 'bg-emerald-400'
                   : snapshot.state === 'speaking'
-                    ? 'bg-violet-500'
+                    ? 'bg-violet-400'
                     : snapshot.state === 'error'
-                      ? 'bg-rose-500'
-                      : 'bg-amber-400'
+                      ? 'bg-rose-400'
+                      : 'bg-amber-300'
               } ${snapshot.state === 'listening' || snapshot.state === 'speaking' ? 'animate-pulse' : ''}`}
             />
             {title}
           </div>
 
-          <p className="mt-3 max-w-sm text-center text-sm leading-relaxed text-[#6b5b8a]">{hint}</p>
+          <p className="mt-3 max-w-sm text-center text-sm leading-relaxed text-white/75">{hint}</p>
 
           {snapshot.state === 'error' && snapshot.error ? (
-            <p className="mt-3 max-w-sm rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-center text-xs leading-relaxed text-rose-700">
+            <p className="mt-3 max-w-sm rounded-xl border border-rose-400/40 bg-rose-500/15 px-3 py-2 text-center text-xs leading-relaxed text-rose-100">
               {snapshot.error}
             </p>
           ) : null}
@@ -59,7 +65,7 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
             type="button"
             onClick={onStop}
             aria-label="Stop the conversation"
-            className="mt-6 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_18px_36px_-14px_rgba(219,39,119,0.8)] transition active:scale-95"
+            className="mt-6 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_16px_40px_-10px_rgba(244,63,94,0.9)] transition active:scale-95"
           >
             <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white">
               <rect x="6" y="6" width="12" height="12" rx="2.5" />
@@ -69,7 +75,7 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
 
         <div className="card mt-3 max-h-52 overflow-y-auto p-3">
           {recent.length === 0 ? (
-            <p className="py-4 text-center text-xs text-[#9385ae]">The conversation will appear here as you speak.</p>
+            <p className="py-4 text-center text-xs text-white/50">The conversation will appear here as you speak.</p>
           ) : (
             <div className="space-y-2">
               {recent.map((line) => (
@@ -81,7 +87,7 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
                 >
                   <span
                     className="mr-1.5 text-[10px] font-bold uppercase tracking-wide"
-                    style={{ color: line.role === 'user' ? 'rgba(255,255,255,0.78)' : '#9385ae' }}
+                    style={{ color: line.role === 'user' ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.5)' }}
                   >
                     {line.role === 'user' ? 'You' : 'Assistant'}
                   </span>
