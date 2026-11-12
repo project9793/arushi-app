@@ -1,15 +1,16 @@
 @import 'tailwindcss';
 
 :root {
-  color-scheme: dark;
-  --gold-1: #ffe6ab;
-  --gold-2: #f3bd57;
-  --gold-3: #c8862a;
-  --rose: #f0619a;
-  --text: #fff9f0;
-  --text-2: rgba(255, 240, 220, 0.82);
-  --text-3: rgba(255, 234, 208, 0.62);
-  --line: rgba(255, 226, 186, 0.24);
+  color-scheme: light;
+  --purple-700: #6d28d9;
+  --purple-600: #7c3aed;
+  --purple-500: #8b5cf6;
+  --purple-100: #ede7fb;
+  --ink: #1f1235;
+  --ink-2: #6b5b8a;
+  --ink-3: #9385ae;
+  --line: #e6dcf8;
+  --surface: #ffffff;
 }
 
 html,
@@ -20,13 +21,9 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(120% 55% at 20% 0%, rgba(243, 189, 87, 0.22) 0%, transparent 60%),
-    radial-gradient(110% 55% at 85% 8%, rgba(240, 97, 154, 0.24) 0%, transparent 58%),
-    radial-gradient(120% 60% at 50% 100%, rgba(120, 32, 72, 0.55) 0%, transparent 62%),
-    linear-gradient(180deg, #2a0f22 0%, #1c0a18 48%, #0e0509 100%);
+  background: linear-gradient(180deg, #f7f2ff 0%, #ece2fc 60%, #e6d9fb 100%);
   background-attachment: fixed;
-  color: var(--text);
+  color: var(--ink);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -35,20 +32,16 @@ body {
 /* ---------------------------------------------------------------- cards */
 
 .card {
-  border-radius: 26px;
+  border-radius: 22px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 232, 202, 0.15), rgba(255, 214, 176, 0.07));
-  backdrop-filter: blur(18px);
-  box-shadow:
-    0 24px 48px -30px rgba(20, 4, 12, 0.95),
-    inset 0 1px 0 rgba(255, 232, 202, 0.22);
+  background: var(--surface);
+  box-shadow: 0 14px 32px -22px rgba(76, 29, 149, 0.45);
 }
 
 .card-strong {
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 232, 202, 0.20), rgba(255, 214, 176, 0.11));
-  box-shadow: inset 0 1px 0 rgba(255, 232, 202, 0.24);
+  background: #faf7ff;
 }
 
 .chip {
@@ -57,29 +50,29 @@ body {
   gap: 6px;
   border-radius: 9999px;
   border: 1px solid var(--line);
-  background: rgba(255, 232, 202, 0.14);
+  background: #f3eefe;
   padding: 7px 13px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-2);
   max-width: 58%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.chip-gold {
+.chip-gold,
+.chip-accent {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border-radius: 9999px;
-  border: 1px solid rgba(243, 189, 87, 0.75);
-  background: linear-gradient(180deg, rgba(104, 66, 18, 0.95), rgba(52, 28, 6, 0.95));
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  background: var(--purple-100);
   padding: 8px 15px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--gold-1);
-  box-shadow: 0 8px 22px -12px rgba(20, 4, 12, 0.9);
+  color: var(--purple-700);
 }
 
 .label {
@@ -89,41 +82,58 @@ body {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: var(--ink-2);
 }
 
 .muted {
-  color: var(--text-3);
+  color: var(--ink-3);
 }
 
 .field {
   width: 100%;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: rgba(255, 232, 202, 0.10);
+  background: #f7f4fe;
   padding: 11px 13px;
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink);
 }
 
 .field::placeholder {
-  color: rgba(255, 234, 208, 0.48);
+  color: var(--ink-3);
 }
 
 .field:focus {
   outline: none;
-  border-color: rgba(243, 189, 87, 0.85);
-  box-shadow: 0 0 0 3px rgba(243, 189, 87, 0.20);
+  border-color: rgba(124, 58, 237, 0.6);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+}
+
+/* --------------------------------------------------------------- bubbles */
+
+.bubble-out {
+  background: var(--purple-600);
+  color: #ffffff;
+  border: 1px solid rgba(109, 40, 217, 0.4);
+}
+
+.bubble-in {
+  background: #f4f1fb;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--purple-500), var(--purple-600));
+  color: #ffffff;
+  box-shadow: 0 10px 22px -14px rgba(109, 40, 217, 0.9);
 }
 
 /* ------------------------------------------------------------ gold type */
 
 .gold-title {
-  background: linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 48%, var(--gold-3) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(243, 189, 87, 0.35));
+  color: var(--purple-700);
+  filter: none;
 }
 
 /* ---------------------------------------------------------------- orb */
@@ -147,16 +157,14 @@ body {
 
 .orb__glow {
   inset: -14%;
-  background: radial-gradient(circle at 50% 50%, rgba(240, 97, 154, 0.6), transparent 62%);
-  filter: blur(28px);
-  opacity: 0.9;
-  transition: opacity 400ms ease;
+  background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.35), transparent 62%);
+  filter: blur(26px);
   z-index: 0;
 }
 
 .orb__ring {
   inset: 0;
-  border: 1px solid rgba(255, 226, 186, 0.3);
+  border: 1px solid rgba(124, 58, 237, 0.25);
   opacity: 0;
   z-index: 1;
 }
@@ -165,9 +173,9 @@ body {
   inset: 9%;
   z-index: 2;
   background:
-    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.85), transparent 44%),
-    conic-gradient(from 140deg, #f3bd57, #f0619a, #ffd9a0, #c8862a, #f3bd57);
-  box-shadow: inset 0 0 60px rgba(30, 8, 16, 0.28), 0 30px 80px -30px rgba(240, 97, 154, 0.9);
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.95), transparent 46%),
+    conic-gradient(from 140deg, #a78bfa, #7c3aed, #c4b5fd, #8b5cf6, #a78bfa);
+  box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.35), 0 24px 60px -28px rgba(109, 40, 217, 0.7);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -175,19 +183,19 @@ body {
 }
 
 .orb--idle .orb__core { animation: orb-breathe 6s ease-in-out infinite; }
-.orb--connecting .orb__core { animation: orb-spin 3.2s linear infinite; filter: saturate(0.7) brightness(0.85); }
+.orb--connecting .orb__core { animation: orb-spin 3.2s linear infinite; filter: saturate(0.7) brightness(0.95); }
 .orb--connecting .orb__ring { animation: orb-ring-pulse 1.8s ease-out infinite; opacity: 1; }
 .orb--listening .orb__core {
   transform: scale(calc(1 + var(--level) * 0.55));
   transition: transform 90ms linear;
-  filter: brightness(calc(1 + var(--level) * 0.5));
+  filter: brightness(calc(1 + var(--level) * 0.25));
 }
-.orb--listening .orb__ring--1 { opacity: 0.85; animation: orb-ring-pulse 2.4s ease-out infinite; }
+.orb--listening .orb__ring--1 { opacity: 0.9; animation: orb-ring-pulse 2.4s ease-out infinite; }
 .orb--speaking .orb__core { animation: orb-speak 0.9s ease-in-out infinite alternate; }
 .orb--speaking .orb__glow { opacity: 1; animation: orb-glow 0.9s ease-in-out infinite alternate; }
 .orb--error .orb__core {
-  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.35), transparent 42%),
-    conic-gradient(from 140deg, #7f1d1d, #b91c1c, #7f1d1d);
+  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.5), transparent 42%),
+    conic-gradient(from 140deg, #fca5a5, #ef4444, #fca5a5);
   animation: none;
 }
 
@@ -202,7 +210,7 @@ body {
 }
 
 .waveform { position: relative; z-index: 3; display: flex; align-items: center; gap: 5px; height: 46px; }
-.waveform span { width: 5px; border-radius: 9999px; background: rgba(30, 8, 16, 0.65); height: 18%; animation: wave 1s ease-in-out infinite; }
+.waveform span { width: 5px; border-radius: 9999px; background: #ffffff; height: 18%; animation: wave 1s ease-in-out infinite; }
 .waveform span:nth-child(2) { animation-delay: 0.12s; }
 .waveform span:nth-child(3) { animation-delay: 0.24s; }
 .waveform span:nth-child(4) { animation-delay: 0.36s; }
@@ -210,9 +218,8 @@ body {
 @keyframes wave { 0%, 100% { height: 16%; opacity: 0.7; } 50% { height: 100%; opacity: 1; } }
 
 .glass {
-  background: rgba(255, 232, 202, 0.12);
+  background: #ffffff;
   border: 1px solid var(--line);
-  backdrop-filter: blur(16px);
 }
 
 .log-line { font-variant-numeric: tabular-nums; }
@@ -221,37 +228,74 @@ body {
   .orb__core, .orb__glow, .orb__ring, .waveform span { animation: none !important; }
 }
 
-/* ---------------------------------------------------- warm-theme overrides
-   Nothing in the app is blue-violet any more. These map the few remaining
-   utility classes onto the gold/rose palette so every panel follows the theme. */
+/* ------------------------------------------------- light-theme remapping
+   Components written for the dark theme use white text and translucent white
+   panels. On a white surface those disappear, so map them onto ink and the
+   purple tints instead of editing every component. */
+
+.text-white,
+.text-\[\#fff4e2\],
+.text-\[\#fff8ee\] { color: var(--ink) !important; }
+
+.text-white\/45,
+.text-white\/50,
+.text-white\/55,
+.text-white\/60,
+.text-white\/70,
+.text-white\/75,
+.text-white\/80,
+.text-white\/85,
+.text-white\/90 { color: var(--ink-2) !important; }
+
+.text-\[\#ffe6ab\],
+.text-\[\#ffe9d2\]\/60,
+.text-\[\#ffd9a8\]\/70,
+.text-\[\#ffe6ab\]\/75,
+.text-\[\#ffe6ab\]\/85 { color: var(--purple-700) !important; }
+
+.text-\[\#ffe9d2\]\/80 { color: var(--ink-2) !important; }
+
+.bg-white\/8,
+.bg-white\/10,
+.bg-white\/12,
+.bg-white\/14,
+.bg-white\/16,
+.bg-white\/18,
+.bg-white\/20 { background-color: #f7f4fe !important; }
+
+.border-white\/15,
+.border-white\/20,
+.border-white\/22,
+.border-white\/24,
+.border-white\/25 { border-color: var(--line) !important; }
 
 .bg-violet-500,
 .bg-violet-600 {
-  background-color: #f0a13c !important;
-  color: #2a0f22 !important;
+  background-color: var(--purple-600) !important;
+  color: #ffffff !important;
 }
 
-.hover\:bg-violet-400:hover {
-  background-color: #f7b955 !important;
-}
+.hover\:bg-violet-400:hover { background-color: var(--purple-500) !important; }
 
 .bg-violet-500\/35,
 .bg-violet-600\/25,
 .bg-violet-600\/30,
 .bg-violet-600\/35,
-.bg-violet-600\/40 {
-  background-color: rgba(243, 189, 87, 0.22) !important;
-}
-
-.bg-violet-600\/45 {
-  background-color: rgba(243, 189, 87, 0.28) !important;
-}
+.bg-violet-600\/40,
+.bg-violet-600\/45 { background-color: var(--purple-100) !important; }
 
 .text-violet-100,
-.text-violet-200 {
-  color: #ffe6ab !important;
-}
+.text-violet-200 { color: var(--purple-700) !important; }
 
-.border-violet-400\/60 {
-  border-color: rgba(243, 189, 87, 0.75) !important;
-}
+.border-violet-400\/60 { border-color: rgba(124, 58, 237, 0.55) !important; }
+
+.bg-amber-400\/20,
+.bg-amber-400\/25 { background-color: var(--purple-100) !important; }
+
+.text-amber-200 { color: var(--purple-700) !important; }
+
+.bg-amber-300\/40,
+.bg-amber-300\/80 { background-color: rgba(139, 92, 246, 0.55) !important; }
+
+.border-amber-200,
+.border-amber-200\/90 { border-color: rgba(124, 58, 237, 0.45) !important; }
