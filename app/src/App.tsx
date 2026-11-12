@@ -63,7 +63,7 @@ export default function App() {
   if (view === 'talk') {
     return (
       <div className="flex h-[100dvh] flex-col overflow-hidden">
-        <main className="min-h-0 flex-1 overflow-y-auto">
+        <main className="min-h-0 flex-1 overflow-y-auto pb-6">
           <TalkScreen snapshot={snapshot} onStop={closeTalk} />
         </main>
       </div>
@@ -74,9 +74,9 @@ export default function App() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden">
-      {/* Only this area scrolls, and only when it actually has more content than
-          fits. The nav sits below it in the flow, so nothing is ever covered. */}
-      <main className="min-h-0 flex-1 overflow-y-auto">
+      {/* pb-10 keeps the last field clear of the floating mic button, so no
+          control ever sits underneath it. */}
+      <main className="min-h-0 flex-1 overflow-y-auto pb-10">
         {showError ? (
           <div className="px-4 pt-3">
             <ErrorBanner message={snapshot.error ?? ''} onDismiss={() => setDismissedError(snapshot.error)} />
