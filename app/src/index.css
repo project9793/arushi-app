@@ -13,8 +13,8 @@
   --orange: #fb923c;
   --orange-deep: #f97316;
   --text: #ffffff;
-  --text-2: rgba(226, 240, 255, 0.76);
-  --text-3: rgba(203, 225, 245, 0.55);
+  --text-2: rgba(226, 240, 255, 0.82);
+  --text-3: rgba(203, 225, 245, 0.62);
 }
 
 html,
@@ -32,6 +32,7 @@ body {
   background-attachment: fixed;
   color: var(--text);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
@@ -40,6 +41,8 @@ h1,
 h2,
 .heading {
   color: var(--orange) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em;
 }
 
 /* ---------------------------------------------------------------- cards */
@@ -49,12 +52,14 @@ h2,
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
   box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  max-width: 100%;
 }
 
 .card-strong {
   border-radius: 18px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.085);
+  max-width: 100%;
 }
 
 .chip {
@@ -65,8 +70,8 @@ h2,
   border: 1px solid var(--line);
   background: rgba(34, 211, 238, 0.12);
   padding: 7px 13px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--text-2);
   max-width: 58%;
   overflow: hidden;
@@ -83,16 +88,16 @@ h2,
   border: 1px solid rgba(34, 211, 238, 0.5);
   background: rgba(34, 211, 238, 0.16);
   padding: 8px 15px;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   color: #a5f3fc;
 }
 
 .label {
   display: block;
   margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--orange) !important;
@@ -104,16 +109,19 @@ h2,
 
 .field {
   width: 100%;
+  max-width: 100%;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.07);
-  padding: 11px 13px;
-  font-size: 13px;
+  padding: 12px 13px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
 }
 
 .field::placeholder {
   color: var(--text-3);
+  font-weight: 500;
 }
 
 .field:focus {
@@ -128,23 +136,26 @@ h2,
   background: linear-gradient(135deg, #0ea5e9, #2563eb);
   color: #ffffff;
   border: 1px solid rgba(56, 189, 248, 0.5);
+  font-weight: 600;
 }
 
 .bubble-in {
   background: rgba(255, 255, 255, 0.075);
   color: #ffffff;
   border: 1px solid var(--line);
+  font-weight: 600;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, #22d3ee, #0891b2);
   color: #04212b;
   box-shadow: 0 12px 26px -14px rgba(34, 211, 238, 0.9);
+  font-weight: 800;
 }
 
 /* ---------------------------------------------------------------- orb
-   The iridescent sphere from the earlier build, restored on request: white
-   highlight top-left, pink/magenta left, violet bottom, aqua right. */
+   The iridescent sphere the user preferred: white highlight top-left, pink
+   left, violet bottom, aqua right. */
 
 .orb {
   position: relative;
@@ -309,4 +320,41 @@ h2,
 .btn-primary,
 .btn-primary * {
   color: #04212b !important;
+}
+
+/* -------------------------------------------------- bold type, everywhere
+   The small 10-11px labels were unreadable on a phone, so every step up the
+   type scale is bolder and slightly larger, and nothing is allowed to spill
+   past the screen edge. */
+
+button,
+select,
+option,
+input,
+textarea,
+label {
+  font-weight: 700;
+  max-width: 100%;
+}
+
+.text-xs { font-size: 13.5px !important; font-weight: 600 !important; }
+.text-sm { font-size: 15px !important; font-weight: 600 !important; }
+.text-\[10px\] { font-size: 12px !important; font-weight: 700 !important; }
+.text-\[11px\] { font-size: 13px !important; font-weight: 600 !important; }
+.text-\[13px\] { font-size: 14.5px !important; font-weight: 600 !important; }
+
+/* Nothing overflows the screen: long words wrap, wide selects shrink. */
+* {
+  min-width: 0;
+}
+
+p,
+span,
+li {
+  overflow-wrap: anywhere;
+}
+
+img,
+svg {
+  max-width: 100%;
 }
