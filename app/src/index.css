@@ -2,13 +2,14 @@
 
 :root {
   color-scheme: dark;
-  --gold-1: #ffe9a3;
-  --gold-2: #f4c14a;
-  --gold-3: #c98a1c;
-  --text: #ffffff;
-  --text-2: rgba(255, 255, 255, 0.78);
-  --text-3: rgba(255, 255, 255, 0.58);
-  --line: rgba(255, 255, 255, 0.22);
+  --gold-1: #ffe6ab;
+  --gold-2: #f3bd57;
+  --gold-3: #c8862a;
+  --rose: #f0619a;
+  --text: #fff9f0;
+  --text-2: rgba(255, 240, 220, 0.82);
+  --text-3: rgba(255, 234, 208, 0.62);
+  --line: rgba(255, 226, 186, 0.24);
 }
 
 html,
@@ -19,13 +20,13 @@ body,
 
 body {
   margin: 0;
-  /* Layered backdrop: violet glow top-left, a warm gold hint top-right, deep
-     ink underneath. Cards sit on top with a much lighter surface than before. */
+  /* Warm only: plum base, gold light from the top, rose glow from below.
+     No blue-violet and no neutral grey anywhere. */
   background:
-    radial-gradient(120% 55% at 15% 0%, rgba(124, 58, 237, 0.45) 0%, transparent 62%),
-    radial-gradient(90% 45% at 95% 5%, rgba(244, 193, 74, 0.18) 0%, transparent 58%),
-    radial-gradient(120% 60% at 50% 100%, rgba(219, 39, 119, 0.22) 0%, transparent 60%),
-    linear-gradient(180deg, #1a0f33 0%, #120a24 45%, #0a0616 100%);
+    radial-gradient(120% 55% at 20% 0%, rgba(243, 189, 87, 0.22) 0%, transparent 60%),
+    radial-gradient(110% 55% at 85% 8%, rgba(240, 97, 154, 0.24) 0%, transparent 58%),
+    radial-gradient(120% 60% at 50% 100%, rgba(120, 32, 72, 0.55) 0%, transparent 62%),
+    linear-gradient(180deg, #2a0f22 0%, #1c0a18 48%, #0e0509 100%);
   background-attachment: fixed;
   color: var(--text);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -38,18 +39,18 @@ body {
 .card {
   border-radius: 26px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
+  background: linear-gradient(180deg, rgba(255, 232, 202, 0.15), rgba(255, 214, 176, 0.07));
   backdrop-filter: blur(18px);
   box-shadow:
-    0 24px 48px -30px rgba(0, 0, 0, 0.95),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    0 24px 48px -30px rgba(20, 4, 12, 0.95),
+    inset 0 1px 0 rgba(255, 232, 202, 0.22);
 }
 
 .card-strong {
   border-radius: 20px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.10));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 232, 202, 0.20), rgba(255, 214, 176, 0.11));
+  box-shadow: inset 0 1px 0 rgba(255, 232, 202, 0.24);
 }
 
 .chip {
@@ -58,7 +59,7 @@ body {
   gap: 6px;
   border-radius: 9999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 232, 202, 0.14);
   padding: 7px 13px;
   font-size: 11px;
   font-weight: 600;
@@ -74,13 +75,13 @@ body {
   align-items: center;
   gap: 6px;
   border-radius: 9999px;
-  border: 1px solid rgba(244, 193, 74, 0.7);
-  background: linear-gradient(180deg, rgba(92, 60, 18, 0.95), rgba(48, 28, 8, 0.95));
+  border: 1px solid rgba(243, 189, 87, 0.75);
+  background: linear-gradient(180deg, rgba(104, 66, 18, 0.95), rgba(52, 28, 6, 0.95));
   padding: 8px 15px;
   font-size: 12px;
   font-weight: 700;
   color: var(--gold-1);
-  box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 8px 22px -12px rgba(20, 4, 12, 0.9);
 }
 
 .label {
@@ -101,20 +102,20 @@ body {
   width: 100%;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 232, 202, 0.10);
   padding: 11px 13px;
   font-size: 13px;
   color: var(--text);
 }
 
 .field::placeholder {
-  color: rgba(255, 255, 255, 0.48);
+  color: rgba(255, 234, 208, 0.48);
 }
 
 .field:focus {
   outline: none;
-  border-color: rgba(244, 193, 74, 0.85);
-  box-shadow: 0 0 0 3px rgba(244, 193, 74, 0.18);
+  border-color: rgba(243, 189, 87, 0.85);
+  box-shadow: 0 0 0 3px rgba(243, 189, 87, 0.20);
 }
 
 /* ------------------------------------------------------------ gold type */
@@ -124,7 +125,7 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(244, 193, 74, 0.35));
+  filter: drop-shadow(0 2px 8px rgba(243, 189, 87, 0.35));
 }
 
 /* ---------------------------------------------------------------- orb */
@@ -148,7 +149,7 @@ body {
 
 .orb__glow {
   inset: -14%;
-  background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.7), transparent 62%);
+  background: radial-gradient(circle at 50% 50%, rgba(240, 97, 154, 0.6), transparent 62%);
   filter: blur(28px);
   opacity: 0.9;
   transition: opacity 400ms ease;
@@ -157,7 +158,7 @@ body {
 
 .orb__ring {
   inset: 0;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 226, 186, 0.3);
   opacity: 0;
   z-index: 1;
 }
@@ -167,8 +168,8 @@ body {
   z-index: 2;
   background:
     radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.85), transparent 44%),
-    conic-gradient(from 140deg, #a855f7, #f472b6, #5eead4, #f4c14a, #a855f7);
-  box-shadow: inset 0 0 60px rgba(10, 6, 22, 0.3), 0 30px 80px -30px rgba(168, 85, 247, 0.95);
+    conic-gradient(from 140deg, #f3bd57, #f0619a, #ffd9a0, #c8862a, #f3bd57);
+  box-shadow: inset 0 0 60px rgba(30, 8, 16, 0.28), 0 30px 80px -30px rgba(240, 97, 154, 0.9);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -203,7 +204,7 @@ body {
 }
 
 .waveform { position: relative; z-index: 3; display: flex; align-items: center; gap: 5px; height: 46px; }
-.waveform span { width: 5px; border-radius: 9999px; background: rgba(10, 6, 22, 0.7); height: 18%; animation: wave 1s ease-in-out infinite; }
+.waveform span { width: 5px; border-radius: 9999px; background: rgba(30, 8, 16, 0.65); height: 18%; animation: wave 1s ease-in-out infinite; }
 .waveform span:nth-child(2) { animation-delay: 0.12s; }
 .waveform span:nth-child(3) { animation-delay: 0.24s; }
 .waveform span:nth-child(4) { animation-delay: 0.36s; }
@@ -211,7 +212,7 @@ body {
 @keyframes wave { 0%, 100% { height: 16%; opacity: 0.7; } 50% { height: 100%; opacity: 1; } }
 
 .glass {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 232, 202, 0.12);
   border: 1px solid var(--line);
   backdrop-filter: blur(16px);
 }
