@@ -10,6 +10,8 @@ export interface AppSettings {
   customPersona: string;
   extraInstructions: string;
   provider: ProviderId;
+  modelOverride: string;
+  webSearch: boolean;
   voice: string;
   grokVoice: string;
   sarvamVoice: string;
@@ -28,7 +30,7 @@ export const SARVAM_VOICES = ['anushka', 'abhilash', 'manisha', 'vidya', 'arya',
 export const SARVAM_LANGUAGES = ['hi-IN', 'en-IN', 'bn-IN', 'gu-IN', 'kn-IN', 'ml-IN', 'mr-IN', 'od-IN', 'pa-IN', 'ta-IN', 'te-IN'];
 
 export const PROVIDERS: Array<{ id: ProviderId; label: string; hint: string }> = [
-  { id: 'gemini', label: 'Gemini Live', hint: 'Real-time speech to speech, with device actions. Key from aistudio.google.com' },
+  { id: 'gemini', label: 'Gemini Live', hint: 'Real-time speech to speech, with search and device actions. Key from aistudio.google.com' },
   { id: 'grok', label: 'Grok Realtime', hint: 'Real-time speech to speech. Key from console.x.ai' },
   { id: 'sarvam', label: 'Sarvam AI', hint: 'Listen, transcribe, think, speak. Key from dashboard.sarvam.ai' },
 ];
@@ -40,6 +42,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   customPersona: '',
   extraInstructions: '',
   provider: 'gemini',
+  modelOverride: '',
+  webSearch: true,
   voice: 'Aoede',
   grokVoice: 'eve',
   sarvamVoice: 'anushka',
@@ -139,6 +143,21 @@ export function buildSystemInstruction(settings: AppSettings): string {
   if (user) {
     parts.push(
       `THE USER\nThe user's name is ${user}. Use their name naturally sometimes, the way a friend would, not in every sentence.`,
+    );
+  }
+
+  // The single most common complaint: old facts presented as today's news.
+  if (settings.webSearch && settings.provider === 'gemini') {
+    parts.push(
+      `CURRENT INFORMATION\nYou have a Google Search tool. Anything that changes over time must be searched before you answer: news, politics, sport, cricket, stock prices, gold rate, weather, exam results, film releases, who currently holds a post, what happened today, and any request containing words like today, aaj, latest, abhi, current, recent, this week, or new. Never answer those from memory, because your training data is out of date and the user will hear stale news as if it were current. Search first, then answer from the search result in your own words. If a search returns nothing, say plainly that you could not check it just now instead of guessing. For clearly historical questions, or when the user asks about an old event on purpose, answer from what you know and do not search.`,
+    );
+  } else if (settings.provider === 'gemini') {
+    parts.push(
+      `CURRENT INFORMATION\nWeb search is switched off. If the user asks about something that changes over time, tell them plainly that search is off and they can switch it on in settings, rather than answering from memory as if it were current.`,
+    );
+  } else {
+    parts.push(
+      `CURRENT INFORMATION\nYou have no web search on this provider. For anything about today or recent events, say plainly that you cannot check the current situation and that switching to Gemini Live in settings enables search.`,
     );
   }
 

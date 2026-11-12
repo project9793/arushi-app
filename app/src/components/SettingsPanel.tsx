@@ -23,11 +23,8 @@ const FIELD =
 const LABEL = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-violet-200/60';
 
 /**
- * Everything the user can change: provider and its key, who the assistant is,
- * how it behaves, what it sounds like and what language it speaks.
- *
- * All three provider keys are entered here. The Gemini key is stored through
- * apiKeyStore so it is the same value the connection code reads.
+ * Everything the user can change: provider, model, keys, who the assistant is,
+ * how it behaves, what it sounds like, and whether it may search the web.
  */
 export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) => void }) {
   const [draft, setDraft] = useState<AppSettings>(() => loadSettings());
@@ -81,21 +78,36 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
       </div>
 
       {draft.provider === 'gemini' ? (
-        <div className="mt-3">
-          <label className={LABEL} htmlFor="gemini-key">
-            Gemini API key
-          </label>
-          <input
-            id="gemini-key"
-            type="password"
-            className={FIELD}
-            value={geminiKey}
-            placeholder="AIza… or AQ.…"
-            onChange={(event) => setGeminiKey(event.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-violet-200/40">
-            {geminiKey ? `currently saved: ${maskApiKey(geminiKey)}` : 'no key saved yet'}
-          </p>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={LABEL} htmlFor="gemini-key">
+              Gemini API key
+            </label>
+            <input
+              id="gemini-key"
+              type="password"
+              className={FIELD}
+              value={geminiKey}
+              placeholder="AIza… or AQ.…"
+              onChange={(event) => setGeminiKey(event.target.value)}
+            />
+            <p className="mt-1 text-[11px] text-violet-200/40">
+              {geminiKey ? `currently saved: ${maskApiKey(geminiKey)}` : 'no key saved yet'}
+            </p>
+          </div>
+          <div>
+            <label className={LABEL} htmlFor="model">
+              Model name
+            </label>
+            <input
+              id="model"
+              className={FIELD}
+              value={draft.modelOverride}
+              placeholder="gemini-3.8-live"
+              onChange={(event) => patch({ modelOverride: event.target.value })}
+            />
+            <p className="mt-1 text-[11px] text-violet-200/40">leave empty to use the default</p>
+          </div>
         </div>
       ) : null}
 
@@ -301,6 +313,14 @@ export function SettingsPanel({ onSaved }: { onSaved?: (settings: AppSettings) =
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-4 text-[11px] text-violet-100/80">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={draft.webSearch}
+            onChange={(event) => patch({ webSearch: event.target.checked })}
+          />
+          Web search (current news, prices, scores)
+        </label>
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
