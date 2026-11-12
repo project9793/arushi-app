@@ -14,7 +14,7 @@ const LABEL: Record<ArushiSnapshot['state'], { title: string; hint: string }> = 
   error: { title: 'Something went wrong', hint: 'The message below says what happened.' },
 };
 
-/** Live conversation, inside a bordered card with a clear way back home. */
+/** Live conversation, inside a white card with a clear way back home. */
 export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
   const { title, hint } = LABEL[snapshot.state];
   const recent = snapshot.transcript.slice(-6);
@@ -32,25 +32,25 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
         <div className="card flex flex-col items-center px-4 py-6">
           <ArushiOrb state={snapshot.state} micLevel={snapshot.micLevel} />
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#f3bd57]/45 bg-[#f3bd57]/15 px-4 py-1.5 text-sm font-bold text-[#ffe6ab]">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#e6dcf8] bg-[#f3eefe] px-4 py-1.5 text-sm font-bold text-[#6d28d9]">
             <span
               className={`h-2 w-2 rounded-full ${
                 snapshot.state === 'listening'
-                  ? 'bg-emerald-400'
+                  ? 'bg-emerald-500'
                   : snapshot.state === 'speaking'
-                    ? 'bg-pink-400'
+                    ? 'bg-violet-500'
                     : snapshot.state === 'error'
-                      ? 'bg-rose-400'
-                      : 'bg-amber-300'
+                      ? 'bg-rose-500'
+                      : 'bg-amber-400'
               } ${snapshot.state === 'listening' || snapshot.state === 'speaking' ? 'animate-pulse' : ''}`}
             />
             {title}
           </div>
 
-          <p className="mt-3 max-w-sm text-center text-sm leading-relaxed text-[#ffe9d2]/80">{hint}</p>
+          <p className="mt-3 max-w-sm text-center text-sm leading-relaxed text-[#6b5b8a]">{hint}</p>
 
           {snapshot.state === 'error' && snapshot.error ? (
-            <p className="mt-3 max-w-sm rounded-xl border border-rose-400/45 bg-rose-500/20 px-3 py-2 text-center text-xs leading-relaxed text-rose-50">
+            <p className="mt-3 max-w-sm rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-center text-xs leading-relaxed text-rose-700">
               {snapshot.error}
             </p>
           ) : null}
@@ -59,7 +59,7 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
             type="button"
             onClick={onStop}
             aria-label="Stop the conversation"
-            className="mt-6 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_16px_40px_-10px_rgba(240,97,154,0.9)] transition active:scale-95"
+            className="mt-6 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_18px_36px_-14px_rgba(219,39,119,0.8)] transition active:scale-95"
           >
             <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white">
               <rect x="6" y="6" width="12" height="12" rx="2.5" />
@@ -69,19 +69,20 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
 
         <div className="card mt-3 max-h-52 overflow-y-auto p-3">
           {recent.length === 0 ? (
-            <p className="py-4 text-center text-xs text-[#ffe9d2]/60">The conversation will appear here as you speak.</p>
+            <p className="py-4 text-center text-xs text-[#9385ae]">The conversation will appear here as you speak.</p>
           ) : (
             <div className="space-y-2">
               {recent.map((line) => (
                 <div
                   key={line.id}
                   className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                    line.role === 'user'
-                      ? 'ml-auto border border-[#f3bd57]/40 bg-[#f3bd57]/20 text-[#fff8ee]'
-                      : 'mr-auto border border-[#ffd9a8]/25 bg-[#ffd9a8]/12 text-[#fff4e2]'
+                    line.role === 'user' ? 'bubble-out ml-auto' : 'bubble-in mr-auto'
                   }`}
                 >
-                  <span className="mr-1.5 text-[10px] font-bold uppercase tracking-wide text-[#ffe6ab]/75">
+                  <span
+                    className="mr-1.5 text-[10px] font-bold uppercase tracking-wide"
+                    style={{ color: line.role === 'user' ? 'rgba(255,255,255,0.78)' : '#9385ae' }}
+                  >
                     {line.role === 'user' ? 'You' : 'Assistant'}
                   </span>
                   {line.text}
