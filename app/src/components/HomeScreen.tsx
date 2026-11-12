@@ -26,14 +26,14 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
   const busy = snapshot.state === 'connecting' || snapshot.state === 'listening' || snapshot.state === 'speaking';
 
   return (
-    <div className="flex min-h-full flex-col items-center px-4 pb-32 pt-2">
+    <div className="flex min-h-full flex-col items-center px-4 pb-4 pt-2">
       <div className="relative w-full max-w-md overflow-hidden rounded-[28px] bg-gradient-to-b from-violet-900/60 via-[#1a1030] to-[#0b0618]">
-        <div className="relative h-[300px] w-full">
+        <div className="relative h-[280px] w-full">
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-full w-full object-cover object-top opacity-95" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,rgba(168,85,247,0.35),transparent_60%)]">
-              <p className="max-w-[16rem] text-center text-[11px] leading-relaxed text-violet-200/50">
+              <p className="max-w-[16rem] text-center text-[11px] leading-relaxed text-white/55">
                 Add an avatar image in Settings to show a portrait here.
               </p>
             </div>
@@ -67,7 +67,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
         </div>
 
         <h2 className="mt-1 text-center text-2xl font-semibold tracking-tight text-white">{STATUS_LABEL[snapshot.state]}</h2>
-        <p className="mt-1 text-center text-xs text-violet-200/50">
+        <p className="mt-1 text-center text-xs text-white/60">
           {snapshot.state === 'listening'
             ? 'Speak in Hindi, English or Hinglish'
             : snapshot.state === 'error'
@@ -86,7 +86,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
       </div>
 
       <form
-        className="mt-4 flex w-full max-w-md items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2"
+        className="card-strong mt-3 flex w-full max-w-md items-center gap-2 px-3 py-2"
         onSubmit={(event) => {
           event.preventDefault();
           const input = new FormData(event.currentTarget).get('ask');
@@ -97,14 +97,14 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
           }
         }}
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-600/30 text-violet-200">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-600/40 text-violet-100">
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M12 2l1.9 5.6L19.5 9l-4.3 3.6L16.6 19 12 15.8 7.4 19l1.4-6.4L4.5 9l5.6-1.4z" />
           </svg>
         </span>
         <input
           name="ask"
-          className="min-w-0 flex-1 bg-transparent text-sm text-violet-50 placeholder:text-violet-200/40 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none"
           placeholder="Ask me anything…"
           autoComplete="off"
         />
@@ -125,15 +125,15 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
             key={action.id}
             type="button"
             onClick={onOpenChat}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-3 text-center transition hover:bg-white/[0.08]"
+            className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/8 px-2 py-3 text-center transition hover:bg-white/12"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-600/25 text-violet-200">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-600/35 text-violet-100">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d={action.icon} />
               </svg>
             </span>
-            <span className="text-xs font-semibold text-violet-50">{action.title}</span>
-            <span className="text-[10px] leading-tight text-violet-200/45">{action.subtitle}</span>
+            <span className="text-xs font-semibold text-white">{action.title}</span>
+            <span className="text-[10px] leading-tight text-white/55">{action.subtitle}</span>
           </button>
         ))}
       </div>

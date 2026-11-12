@@ -15,7 +15,7 @@ export function SettingsScreen({ snapshot, onSpeakerTest, onClearTranscript }: S
   const [savedAvatar, setSavedAvatar] = useState(false);
 
   return (
-    <div className="flex min-h-full flex-col px-4 pb-44 pt-3">
+    <div className="flex min-h-full flex-col px-4 pb-6 pt-3">
       <header>
         <h1 className="text-lg font-semibold tracking-tight text-white">Settings</h1>
         <p className="text-[11px] text-white/60">everything is stored on this device only</p>

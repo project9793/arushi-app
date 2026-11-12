@@ -14,13 +14,13 @@ const LABEL: Record<ArushiSnapshot['state'], { title: string; hint: string }> = 
   error: { title: 'Something went wrong', hint: 'The message below says what happened.' },
 };
 
-/** Live conversation, held inside a bordered card with a clear way back home. */
+/** Live conversation, inside a bordered card with a clear way back home. */
 export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
   const { title, hint } = LABEL[snapshot.state];
   const recent = snapshot.transcript.slice(-6);
 
   return (
-    <div className="px-4 pb-32 pt-3">
+    <div className="px-4 pb-4 pt-3">
       <div className="mx-auto max-w-md">
         <div className="mb-3 flex items-center justify-between gap-2">
           <button type="button" onClick={onStop} className="chip-gold">
@@ -76,9 +76,7 @@ export function TalkScreen({ snapshot, onStop }: TalkScreenProps) {
                 <div
                   key={line.id}
                   className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                    line.role === 'user'
-                      ? 'ml-auto bg-violet-500/35 text-white'
-                      : 'mr-auto bg-white/12 text-white/90'
+                    line.role === 'user' ? 'ml-auto bg-violet-500/35 text-white' : 'mr-auto bg-white/12 text-white/90'
                   }`}
                 >
                   <span className="mr-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/55">
