@@ -7,29 +7,29 @@ interface ChatScreenProps {
 }
 
 /**
- * Chat stays inside a fixed-height box with its own scroll, so a long
- * conversation never stretches the page or pushes the bottom bar away.
+ * Chat lives in a fixed-height card with its own scroll. The height subtracts
+ * the top header and the bottom navigation so nothing is ever hidden behind it.
  */
 export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
   return (
-    <div className="flex h-[calc(100dvh-8.5rem)] flex-col px-4 pt-3">
+    <div className="flex h-[calc(100dvh-12rem)] flex-col px-4 pt-3">
       <header className="flex shrink-0 items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight">Chat</h1>
-          <p className="text-[11px] text-violet-200/45">{snapshot.model ?? 'not connected'}</p>
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight text-white">Chat</h1>
+          <p className="truncate text-[11px] text-white/55">{snapshot.model ?? 'not connected'}</p>
         </div>
         <button
           type="button"
           onClick={onClear}
-          className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] text-violet-100/80 transition hover:bg-white/10"
+          className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white/85"
         >
           Clear
         </button>
       </header>
 
-      <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto rounded-2xl border border-white/10 bg-black/20 p-3">
+      <div className="card mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {snapshot.transcript.length === 0 ? (
-          <p className="mt-8 text-center text-xs text-violet-200/35">
+          <p className="mt-10 px-4 text-center text-xs text-white/55">
             Nothing here yet. Tap the mic on Home, or type below.
           </p>
         ) : (
@@ -37,12 +37,10 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
             <div
               key={line.id}
               className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                line.role === 'user'
-                  ? 'ml-auto bg-violet-600/30 text-violet-50'
-                  : 'mr-auto bg-white/[0.06] text-violet-100'
+                line.role === 'user' ? 'ml-auto bg-violet-500/35 text-white' : 'mr-auto bg-white/12 text-white/90'
               }`}
             >
-              <span className="mr-1.5 text-[10px] font-semibold uppercase tracking-wide text-violet-300/60">
+              <span className="mr-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/55">
                 {line.role === 'user' ? 'You' : 'Assistant'}
               </span>
               {line.text}
@@ -52,7 +50,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
       </div>
 
       <form
-        className="mt-3 flex shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2"
+        className="card-strong mt-3 flex shrink-0 items-center gap-2 px-3 py-2"
         onSubmit={(event) => {
           event.preventDefault();
           const input = new FormData(event.currentTarget).get('message');
@@ -65,7 +63,7 @@ export function ChatScreen({ snapshot, onSendText, onClear }: ChatScreenProps) {
       >
         <input
           name="message"
-          className="min-w-0 flex-1 bg-transparent text-sm text-violet-50 placeholder:text-violet-200/40 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none"
           placeholder="Type a message…"
           autoComplete="off"
         />
