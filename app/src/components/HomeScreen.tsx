@@ -28,7 +28,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
   return (
     <div className="flex min-h-full flex-col items-center px-4 pb-4 pt-3">
       <div className="card w-full max-w-md overflow-hidden p-4">
-        <div className="relative flex h-[215px] w-full items-center justify-center overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_50%_45%,rgba(124,58,237,0.45),rgba(10,6,20,0.9)_72%)]">
+        <div className="relative flex h-[215px] w-full items-center justify-center overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_50%_45%,rgba(14,165,233,0.4),rgba(4,13,23,0.92)_72%)]">
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-90" />
           ) : null}
@@ -40,7 +40,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
             className={`relative z-10 grid h-[128px] w-[128px] place-items-center rounded-full border-2 transition ${
               busy
                 ? 'border-rose-300/70 bg-gradient-to-br from-rose-500 to-pink-600 shadow-[0_0_60px_rgba(244,63,94,0.8)]'
-                : 'border-[#c084fc]/70 bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-[0_0_60px_rgba(139,92,246,0.85)]'
+                : 'border-[#a5f3fc]/70 bg-gradient-to-br from-cyan-300 to-cyan-600 shadow-[0_0_60px_rgba(34,211,238,0.8)]'
             }`}
           >
             {snapshot.state === 'speaking' ? (
@@ -51,7 +51,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
                 <span className="h-8 w-1 animate-pulse rounded bg-white" />
               </div>
             ) : (
-              <svg viewBox="0 0 24 24" className="h-12 w-12 fill-white">
+              <svg viewBox="0 0 24 24" className={`h-12 w-12 ${busy ? 'fill-white' : 'fill-[#04212b]'}`}>
                 <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" />
                 <path d="M6.5 11a5.5 5.5 0 0 0 11 0h1.5a7 7 0 0 1-6.25 6.95V21h-1.5v-3.05A7 7 0 0 1 5 11z" />
               </svg>
@@ -75,12 +75,12 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
         ) : null}
 
         <div className="mt-3 flex items-center justify-center gap-1.5">
-          <span className="h-3 w-1 rounded bg-[#c084fc]" />
-          <span className="h-2 w-1 rounded bg-[#7c3aed]" />
-          <span className="h-3 w-1 rounded bg-[#c084fc]" />
-          <span className="h-2 w-1 rounded bg-[#7c3aed]" />
-          <span className="h-3 w-1 rounded bg-[#c084fc]" />
-          <span className="h-2 w-1 rounded bg-[#7c3aed]" />
+          <span className="h-3 w-1 rounded bg-[#22d3ee]" />
+          <span className="h-2 w-1 rounded bg-[#0891b2]" />
+          <span className="h-3 w-1 rounded bg-[#22d3ee]" />
+          <span className="h-2 w-1 rounded bg-[#0891b2]" />
+          <span className="h-3 w-1 rounded bg-[#22d3ee]" />
+          <span className="h-2 w-1 rounded bg-[#0891b2]" />
         </div>
       </div>
 
@@ -96,7 +96,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
           }
         }}
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#8b5cf6]/25 text-[#d8b4fe]">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#22d3ee]/15 text-[#a5f3fc]">
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M12 2l1.9 5.6L19.5 9l-4.3 3.6L16.6 19 12 15.8 7.4 19l1.4-6.4L4.5 9l5.6-1.4z" />
           </svg>
@@ -126,7 +126,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
             onClick={onOpenChat}
             className="card flex flex-col items-center gap-1.5 px-2 py-3 text-center transition active:scale-[0.98]"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#8b5cf6]/25 text-[#d8b4fe]">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#22d3ee]/15 text-[#a5f3fc]">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9">
                 <path d={action.icon} />
               </svg>

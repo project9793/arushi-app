@@ -14,14 +14,14 @@ const TABS: Array<{ id: TabId; label: string; icon: string }> = [
   { id: 'settings', label: 'Settings', icon: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z' },
 ];
 
-/** Dark pill navigation with a violet glow on the active tab. */
+/** Deep navy bar with a cyan active tab and a floating cyan mic, as in the reference. */
 export function BottomNav({ active, onSelect, onCentrePress, listening }: BottomNavProps) {
-  const activeClass = 'text-[#d8b4fe]';
-  const idleClass = 'text-white/55';
+  const activeClass = 'text-[#22d3ee]';
+  const idleClass = 'text-[#8fb0c9]';
 
   return (
     <nav className="shrink-0 px-3 pb-2 pt-1">
-      <div className="relative mx-auto flex max-w-md items-end justify-between rounded-[26px] border border-[#a855f7]/30 bg-[#150a26] px-3 py-2 shadow-[0_16px_36px_-18px_rgba(0,0,0,0.95)]">
+      <div className="relative mx-auto flex max-w-md items-end justify-between rounded-[26px] border border-[#22d3ee]/25 bg-[#0d2136] px-3 py-2 shadow-[0_16px_36px_-18px_rgba(0,0,0,0.95)]">
         <button
           type="button"
           onClick={() => onSelect('home')}
@@ -76,8 +76,8 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           type="button"
           onClick={onCentrePress}
           aria-label={listening ? 'Stop listening' : 'Start listening'}
-          className={`absolute left-1/2 top-0 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-[#c084fc]/60 shadow-[0_0_30px_rgba(139,92,246,0.8)] transition ${
-            listening ? 'bg-gradient-to-br from-rose-500 to-pink-600' : 'bg-gradient-to-br from-violet-500 to-fuchsia-600'
+          className={`absolute left-1/2 top-0 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-[#a5f3fc]/60 shadow-[0_0_28px_rgba(34,211,238,0.75)] transition ${
+            listening ? 'bg-gradient-to-br from-rose-500 to-pink-600' : 'bg-gradient-to-br from-cyan-300 to-cyan-600'
           }`}
         >
           {listening ? (
@@ -85,7 +85,7 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
               <rect x="6" y="6" width="12" height="12" rx="2.5" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white">
+            <svg viewBox="0 0 24 24" className="h-6 w-6 fill-[#04212b]">
               <path d="M12 3a1 1 0 0 1 1 1v7a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Z" />
               <path d="M7.05 6.34a1 1 0 0 1-.27 1.39 6 6 0 1 0 10.44 0 1 1 0 1 1 1.12-1.66 8 8 0 1 1-13.92 0 1 1 0 0 1 1.63.27Z" />
             </svg>
