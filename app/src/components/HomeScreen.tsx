@@ -26,28 +26,24 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
   const busy = snapshot.state === 'connecting' || snapshot.state === 'listening' || snapshot.state === 'speaking';
 
   return (
-    <div className="flex min-h-full flex-col items-center px-4 pb-4 pt-2">
-      <div className="relative w-full max-w-md overflow-hidden rounded-[28px] bg-gradient-to-b from-violet-900/60 via-[#1a1030] to-[#0b0618]">
-        <div className="relative h-[280px] w-full">
+    <div className="flex min-h-full flex-col items-center px-4 pb-4 pt-3">
+      {/* Hero: the mic is the one thing to tap, so nothing sits behind it. */}
+      <div className="card w-full max-w-md overflow-hidden p-4">
+        <div className="relative flex h-[210px] w-full items-center justify-center overflow-hidden rounded-[20px]">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="h-full w-full object-cover object-top opacity-95" />
+            <img src={avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,rgba(168,85,247,0.35),transparent_60%)]">
-              <p className="max-w-[16rem] text-center text-[11px] leading-relaxed text-white/55">
-                Add an avatar image in Settings to show a portrait here.
-              </p>
-            </div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(168,85,247,0.45),rgba(10,6,22,0.15)_65%)]" />
           )}
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0618] to-transparent" />
 
           <button
             type="button"
             onClick={onMicPress}
             aria-label={busy ? 'Stop listening' : 'Start talking'}
-            className={`absolute left-1/2 top-1/2 grid h-[120px] w-[120px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] transition ${
+            className={`relative z-10 grid h-[124px] w-[124px] place-items-center rounded-full border-[3px] transition ${
               busy
-                ? 'border-rose-300 bg-gradient-to-br from-rose-600/90 to-fuchsia-700/90 shadow-[0_0_60px_rgba(244,63,94,0.7)]'
-                : 'border-violet-300/80 bg-gradient-to-br from-[#1b1233]/95 to-[#241640]/95 shadow-[0_0_60px_rgba(139,92,246,0.55)]'
+                ? 'border-rose-200 bg-gradient-to-br from-rose-500 to-fuchsia-600 shadow-[0_0_70px_rgba(244,63,94,0.75)]'
+                : 'border-amber-200/90 bg-gradient-to-br from-[#2a1750] to-[#170d2e] shadow-[0_0_70px_rgba(244,193,74,0.35)]'
             }`}
           >
             {snapshot.state === 'speaking' ? (
@@ -58,7 +54,7 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
                 <span className="h-8 w-1 animate-pulse rounded bg-white" />
               </div>
             ) : (
-              <svg viewBox="0 0 24 24" className="h-11 w-11 fill-white/90">
+              <svg viewBox="0 0 24 24" className="h-12 w-12 fill-white">
                 <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" />
                 <path d="M6.5 11a5.5 5.5 0 0 0 11 0h1.5a7 7 0 0 1-6.25 6.95V21h-1.5v-3.05A7 7 0 0 1 5 11z" />
               </svg>
@@ -66,8 +62,8 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
           </button>
         </div>
 
-        <h2 className="mt-1 text-center text-2xl font-semibold tracking-tight text-white">{STATUS_LABEL[snapshot.state]}</h2>
-        <p className="mt-1 text-center text-xs text-white/60">
+        <h2 className="mt-3 text-center text-[26px] font-bold tracking-tight text-white">{STATUS_LABEL[snapshot.state]}</h2>
+        <p className="mt-1 text-center text-[13px] leading-relaxed text-white/80">
           {snapshot.state === 'listening'
             ? 'Speak in Hindi, English or Hinglish'
             : snapshot.state === 'error'
@@ -75,13 +71,19 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
               : 'Your voice assistant is ready'}
         </p>
 
+        {!avatarUrl ? (
+          <p className="mt-2 text-center text-[11px] text-white/55">
+            Add an avatar image in Settings to show a portrait here.
+          </p>
+        ) : null}
+
         <div className="mt-3 flex items-center justify-center gap-1.5">
-          <span className="h-3 w-1 rounded bg-violet-400/70" />
-          <span className="h-2 w-1 rounded bg-violet-400/40" />
-          <span className="h-3 w-1 rounded bg-violet-400/70" />
-          <span className="h-2 w-1 rounded bg-violet-400/40" />
-          <span className="h-3 w-1 rounded bg-violet-400/70" />
-          <span className="h-2 w-1 rounded bg-violet-400/40" />
+          <span className="h-3 w-1 rounded bg-amber-300/80" />
+          <span className="h-2 w-1 rounded bg-amber-300/40" />
+          <span className="h-3 w-1 rounded bg-amber-300/80" />
+          <span className="h-2 w-1 rounded bg-amber-300/40" />
+          <span className="h-3 w-1 rounded bg-amber-300/80" />
+          <span className="h-2 w-1 rounded bg-amber-300/40" />
         </div>
       </div>
 
@@ -97,21 +99,21 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
           }
         }}
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-600/40 text-violet-100">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-400/25 text-amber-200">
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M12 2l1.9 5.6L19.5 9l-4.3 3.6L16.6 19 12 15.8 7.4 19l1.4-6.4L4.5 9l5.6-1.4z" />
           </svg>
         </span>
         <input
           name="ask"
-          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
           placeholder="Ask me anything…"
           autoComplete="off"
         />
         <button
           type="submit"
           aria-label="Send"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500 text-white transition hover:bg-violet-400"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-[#1a1030] transition active:scale-95"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
             <path d="M3 11.5 21 3l-8.5 18-2.2-7.3z" />
@@ -125,15 +127,15 @@ export function HomeScreen({ snapshot, avatarUrl, onMicPress, onSendText, onOpen
             key={action.id}
             type="button"
             onClick={onOpenChat}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/8 px-2 py-3 text-center transition hover:bg-white/12"
+            className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 px-2 py-3 text-center transition hover:bg-white/16 active:scale-[0.98]"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-600/35 text-violet-100">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-400/20 text-amber-200">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9">
                 <path d={action.icon} />
               </svg>
             </span>
-            <span className="text-xs font-semibold text-white">{action.title}</span>
-            <span className="text-[10px] leading-tight text-white/55">{action.subtitle}</span>
+            <span className="text-xs font-bold text-white">{action.title}</span>
+            <span className="text-[10px] leading-tight text-white/60">{action.subtitle}</span>
           </button>
         ))}
       </div>
