@@ -14,14 +14,14 @@ const TABS: Array<{ id: TabId; label: string; icon: string }> = [
   { id: 'settings', label: 'Settings', icon: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z' },
 ];
 
-/** Cream pill navigation with warm brown labels — no blue, no grey. */
+/** White pill navigation with purple active state, as in the reference. */
 export function BottomNav({ active, onSelect, onCentrePress, listening }: BottomNavProps) {
-  const activeClass = 'text-[#b45309]';
-  const idleClass = 'text-[#8a6a45]';
+  const activeClass = 'text-[#7c3aed]';
+  const idleClass = 'text-[#8b7ba8]';
 
   return (
     <nav className="shrink-0 px-3 pb-2 pt-1">
-      <div className="relative mx-auto flex max-w-md items-end justify-between rounded-[26px] border border-[#e6cfa8] bg-[#fdf3e2] px-3 py-2 shadow-[0_14px_30px_-14px_rgba(20,4,12,0.85)]">
+      <div className="relative mx-auto flex max-w-md items-end justify-between rounded-[26px] border border-[#e6dcf8] bg-white px-3 py-2 shadow-[0_12px_30px_-16px_rgba(76,29,149,0.55)]">
         <button
           type="button"
           onClick={() => onSelect('home')}
@@ -76,10 +76,10 @@ export function BottomNav({ active, onSelect, onCentrePress, listening }: Bottom
           type="button"
           onClick={onCentrePress}
           aria-label={listening ? 'Stop listening' : 'Start listening'}
-          className={`absolute left-1/2 top-0 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] shadow-[0_12px_28px_-8px_rgba(180,83,9,0.85)] transition ${
+          className={`absolute left-1/2 top-0 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white shadow-[0_12px_26px_-10px_rgba(109,40,217,0.85)] transition ${
             listening
-              ? 'border-rose-200 bg-gradient-to-br from-rose-500 to-pink-600'
-              : 'border-amber-200 bg-gradient-to-br from-amber-400 to-orange-500'
+              ? 'bg-gradient-to-br from-rose-500 to-pink-600'
+              : 'bg-gradient-to-br from-violet-500 to-violet-700'
           }`}
         >
           {listening ? (
