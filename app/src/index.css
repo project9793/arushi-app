@@ -20,8 +20,6 @@ body,
 
 body {
   margin: 0;
-  /* Warm only: plum base, gold light from the top, rose glow from below.
-     No blue-violet and no neutral grey anywhere. */
   background:
     radial-gradient(120% 55% at 20% 0%, rgba(243, 189, 87, 0.22) 0%, transparent 60%),
     radial-gradient(110% 55% at 85% 8%, rgba(240, 97, 154, 0.24) 0%, transparent 58%),
@@ -221,4 +219,39 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .orb__core, .orb__glow, .orb__ring, .waveform span { animation: none !important; }
+}
+
+/* ---------------------------------------------------- warm-theme overrides
+   Nothing in the app is blue-violet any more. These map the few remaining
+   utility classes onto the gold/rose palette so every panel follows the theme. */
+
+.bg-violet-500,
+.bg-violet-600 {
+  background-color: #f0a13c !important;
+  color: #2a0f22 !important;
+}
+
+.hover\:bg-violet-400:hover {
+  background-color: #f7b955 !important;
+}
+
+.bg-violet-500\/35,
+.bg-violet-600\/25,
+.bg-violet-600\/30,
+.bg-violet-600\/35,
+.bg-violet-600\/40 {
+  background-color: rgba(243, 189, 87, 0.22) !important;
+}
+
+.bg-violet-600\/45 {
+  background-color: rgba(243, 189, 87, 0.28) !important;
+}
+
+.text-violet-100,
+.text-violet-200 {
+  color: #ffe6ab !important;
+}
+
+.border-violet-400\/60 {
+  border-color: rgba(243, 189, 87, 0.75) !important;
 }
